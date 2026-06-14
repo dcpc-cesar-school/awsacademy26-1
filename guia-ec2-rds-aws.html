@@ -373,7 +373,7 @@
   <div class="section-label">Parte 1 — EC2 + RDS PostgreSQL</div>
 
   <!-- PASSO 1 -->
-  <div class="section-label">Passo 1 de 6</div>
+  <div class="section-label">Passo 1 de 5</div>
   <div class="step">
     <div class="step-header">
       <div class="step-num orange">01</div>
@@ -438,7 +438,7 @@
   <hr>
 
   <!-- PASSO 2 -->
-  <div class="section-label">Passo 2 de 6</div>
+  <div class="section-label">Passo 2 de 5</div>
   <div class="step">
     <div class="step-header">
       <div class="step-num blue">02</div>
@@ -470,55 +470,10 @@
   <hr>
 
   <!-- PASSO 3 -->
-  <div class="section-label">Passo 3 de 6</div>
+  <div class="section-label">Passo 3 de 5</div>
   <div class="step">
     <div class="step-header">
-      <div class="step-num red">03</div>
-      <div class="step-title-block">
-        <h2>Configurar o Security Group do RDS</h2>
-        <p>Liberar a porta 5432 para a EC2</p>
-      </div>
-    </div>
-    <div class="step-body">
-      <div class="alert info">
-        <div class="alert-icon">🛡️</div>
-        <p><strong>O que é Security Group?</strong> É um firewall virtual da AWS. Por padrão, ele bloqueia tudo. Precisamos criar uma regra que permita a EC2 falar com o RDS.</p>
-      </div>
-
-      <ul class="instructions">
-        <li>Vá em <strong>RDS → seu banco</strong> e percorra até <strong>Regras de Grupos de Segurança</strong></li>
-        <li>Localize o Security Group associado ao RDS e clique no <strong>ID do grupo</strong></li>
-        <li>Clique em <strong>Editar regras de entrada → Adicionar regra</strong> e confira se está assim:</li>
-      </ul>
-
-      <table>
-        <thead><tr><th>Campo</th><th>Valor</th><th>Por quê?</th></tr></thead>
-        <tbody>
-          <tr><td>Tipo</td><td><code>PostgreSQL</code></td><td>Já preenche a porta 5432 automaticamente</td></tr>
-          <tr><td>Protocolo</td><td><code>TCP</code></td><td>Preenchido automaticamente</td></tr>
-          <tr><td>Porta</td><td><code>5432</code></td><td>Porta padrão do PostgreSQL</td></tr>
-          <tr><td>Origem</td><td><strong>Security Group da EC2</strong></td><td>Só a EC2 pode acessar — mais seguro que liberar por IP</td></tr>
-        </tbody>
-      </table>
-
-      <div class="alert success">
-        <div class="alert-icon">✅</div>
-        <p><strong>Dica de segurança:</strong> Em vez de colocar o IP da EC2 (que pode mudar), use o ID do Security Group da EC2 como origem. Assim apenas máquinas com aquele SG podem conectar.</p>
-      </div>
-
-      <ul class="instructions">
-        <li>Clique em <strong>Salvar regras</strong></li>
-      </ul>
-    </div>
-  </div>
-
-  <hr>
-
-  <!-- PASSO 4 -->
-  <div class="section-label">Passo 4 de 6</div>
-  <div class="step">
-    <div class="step-header">
-      <div class="step-num green">04</div>
+      <div class="step-num green">03</div>
       <div class="step-title-block">
         <h2>Instalar o cliente PostgreSQL na EC2</h2>
         <p>A ferramenta para se comunicar com o banco</p>
@@ -547,11 +502,11 @@
 
   <hr>
 
-  <!-- PASSO 5 -->
-  <div class="section-label">Passo 5 de 6</div>
+  <!-- PASSO 4 -->
+  <div class="section-label">Passo 4 de 5</div>
   <div class="step">
     <div class="step-header">
-      <div class="step-num yellow">05</div>
+      <div class="step-num yellow">04</div>
       <div class="step-title-block">
         <h2>Conectar no RDS PostgreSQL 🎯</h2>
         <p>EC2 falando com o banco</p>
@@ -603,11 +558,11 @@
   <!-- PARTE 2 -->
   <div class="section-label">Parte 2 — Servidor Node.js na EC2</div>
 
-  <!-- PASSO 6 -->
-  <div class="section-label">Passo 6 de 6</div>
+  <!-- PASSO 5 -->
+  <div class="section-label">Passo 5 de 5</div>
   <div class="step">
     <div class="step-header">
-      <div class="step-num orange">06</div>
+      <div class="step-num orange">05</div>
       <div class="step-title-block">
         <h2>Instalar Node.js e rodar o servidor Hello World</h2>
         <p>Servidor HTTP acessível pela internet na porta 3000</p>
