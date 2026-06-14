@@ -340,21 +340,12 @@
       </div>
 
       <ul class="instructions">
-        <li>Crie uma nova instância EC2 com as mesmas configurações anteriores, com o nome <code>docker-server</code></li>
-        <li>No Security Group, libere as seguintes regras para <code>0.0.0.0/0</code>:</li>
+        <li>Acesse o EC2 e execute uma nova instância com as mesmas configurações anteriores, com o nome <code>docker-server</code></li>
+        <li>Na seção Firewall (grupos de segurança), selecione para permitir tráfego via: [X] SSH, [X] HTTP, [X] HTTPS:</li>
       </ul>
-
-      <table>
-        <thead><tr><th>Tipo</th><th>Porta</th><th>Origem</th></tr></thead>
-        <tbody>
-          <tr><td><code>SSH</code></td><td><code>22</code></td><td><code>0.0.0.0/0</code></td></tr>
-          <tr><td><code>HTTP</code></td><td><code>80</code></td><td><code>0.0.0.0/0</code></td></tr>
-          <tr><td><code>HTTPS</code></td><td><code>443</code></td><td><code>0.0.0.0/0</code></td></tr>
-        </tbody>
-      </table>
-
+      
       <ul class="instructions">
-        <li>Expanda <strong>Detalhes avançados</strong> e localize o campo <strong>Dados do usuário</strong></li>
+        <li>No final da página, expanda <strong>Detalhes avançados</strong> e localize o campo <strong>Dados do usuário</strong></li>
         <li>Cole o script abaixo — será executado automaticamente na primeira inicialização:</li>
       </ul>
 
