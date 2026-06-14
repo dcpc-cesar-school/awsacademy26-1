@@ -104,26 +104,27 @@
     margin-bottom: 1rem;
   }
   .terminal-body .prompt-line .prompt { color: #56d364; margin-right: .5rem; }
-  .track-item {
-    display: flex;
+
+  /* Grid: cada coluna fica do tamanho da maior linha (número, nome, tag) */
+  .track-list {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    column-gap: .9rem;
+    row-gap: .55rem;
     align-items: baseline;
-    gap: .9rem;
-    padding: .45rem 0;
-    border-top: 1px solid #232a3a;
-    color: #cdd5e0;
   }
-  .track-item:first-of-type { border-top: none; }
+  .track-item { display: contents; }
   .track-item .num {
     color: #6b7280;
     font-weight: 600;
   }
   .track-item .name { color: #e6edf3; font-weight: 500; }
   .track-item .tag {
-    margin-left: auto;
     font-size: .72rem;
     color: #8b949e;
     text-align: right;
     white-space: nowrap;
+    justify-self: end;
   }
   .track-item.t1 .num, .track-item.t1 .name { color: var(--orange); }
   .track-item.t2 .num, .track-item.t2 .name { color: #79c0ff; }
@@ -288,8 +289,13 @@
     .modules::before { left: 23px; }
     .module { grid-template-columns: 48px 1fr; gap: 1rem; }
     .module-num { width: 48px; height: 48px; font-size: .85rem; }
-    .track-item .tag { white-space: normal; text-align: left; margin-left: 0; }
-    .track-item { flex-wrap: wrap; gap: .3rem .9rem; }
+    .track-list { grid-template-columns: auto 1fr; }
+    .track-item .tag {
+      grid-column: 1 / -1;
+      white-space: normal;
+      text-align: left;
+      justify-self: start;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -312,20 +318,22 @@
       </div>
       <div class="terminal-body">
         <p class="prompt-line"><span class="prompt">$</span>aws-academy --laboratorios</p>
-        <div class="track-item t1">
-          <span class="num">01</span>
-          <span class="name">fundacao</span>
-          <span class="tag">EC2 · RDS · Node.js</span>
-        </div>
-        <div class="track-item t2">
-          <span class="num">02</span>
-          <span class="name">containers</span>
-          <span class="tag">Docker · Docker Hub · ECS</span>
-        </div>
-        <div class="track-item t3">
-          <span class="num">03</span>
-          <span class="name">escala-e-acesso</span>
-          <span class="tag">ALB · Auto Scaling · CloudWatch · SNS · IAM</span>
+        <div class="track-list">
+          <div class="track-item t1">
+            <span class="num">01</span>
+            <span class="name">fundacao</span>
+            <span class="tag">EC2 · RDS · Node.js</span>
+          </div>
+          <div class="track-item t2">
+            <span class="num">02</span>
+            <span class="name">containers</span>
+            <span class="tag">Docker · Docker Hub · ECS</span>
+          </div>
+          <div class="track-item t3">
+            <span class="num">03</span>
+            <span class="name">escala-e-acesso</span>
+            <span class="tag">ALB · Auto Scaling · CloudWatch · SNS · IAM</span>
+          </div>
         </div>
       </div>
     </div>
