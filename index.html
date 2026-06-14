@@ -37,9 +37,28 @@
 
   /* ── HERO ── */
   .hero {
-    max-width: 980px;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 4.5rem 1.5rem 3rem;
+    padding: 4.5rem 1.5rem 4rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: center;
+    gap: 2.5rem;
+    position: relative;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -4rem;
+    right: -8%;
+    width: 560px;
+    height: 560px;
+    background: radial-gradient(circle, var(--orange-soft) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+  }
+  @media (min-width: 960px) {
+    .hero { grid-template-columns: 1.05fr 1fr; gap: 3.5rem; }
   }
   .eyebrow {
     font-family: 'JetBrains Mono', monospace;
@@ -55,7 +74,6 @@
     font-weight: 800;
     line-height: 1.12;
     letter-spacing: -.01em;
-    max-width: 14ch;
   }
   h1 span { color: var(--orange); }
   .lede {
@@ -68,12 +86,16 @@
 
   /* ── TERMINAL ── */
   .terminal {
-    margin-top: 2.5rem;
+    margin-top: 0;
     background: var(--term-bg);
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 20px 50px -20px rgba(20,24,31,.35);
+    width: 100%;
     max-width: 560px;
+  }
+  @media (min-width: 960px) {
+    .terminal { justify-self: end; }
   }
   .terminal-bar {
     display: flex;
@@ -131,7 +153,7 @@
 
   /* ── MAIN / MODULES ── */
   main {
-    max-width: 980px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 1rem 1.5rem 5rem;
   }
@@ -267,7 +289,7 @@
 
   /* ── FOOTER ── */
   footer {
-    max-width: 980px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 2.5rem 1.5rem 3rem;
     border-top: 1px solid var(--border);
@@ -285,6 +307,7 @@
   }
 
   @media (max-width: 600px) {
+    .hero::before { display: none; }
     .modules::before { left: 23px; }
     .module { grid-template-columns: 48px 1fr; gap: 1rem; }
     .module-num { width: 48px; height: 48px; font-size: .85rem; }
@@ -302,7 +325,7 @@
 
   <header class="hero">
     <p class="eyebrow">AWS Academy · Trilha de Laboratórios</p>
-    <h1>Fundamentos de Cloud Computing <span>com </span> AWS</h1>
+    <h1>Construa, conteinerize e <span>escale</span> na AWS</h1>
     <p class="lede">Três laboratórios práticos, em sequência: do primeiro servidor com banco de dados até uma arquitetura com balanceamento de carga, escalonamento automático, monitoramento e controle de acesso.</p>
 
     <div class="terminal">
