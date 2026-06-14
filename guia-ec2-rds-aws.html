@@ -396,17 +396,8 @@
         <li>Tipo de instância: <strong>t3.small</strong></li>
         <li>Par de chaves: selecione <strong>vockey</strong></li>
         <li>Em <strong>Configurações de rede</strong>, anote o nome da <strong>VPC padrão</strong> selecionada — você vai precisar escolher a mesma VPC na criação do RDS</li>
-        <li>No <strong>Security Group (Firewall)</strong>, selecione <strong>Criar Grupo de Segurança</strong> e marque as seguintes regras de entrada:</li>
+        <li>No <strong>Firewall (Grupos de Segurança)</strong>, selecione <strong>Criar Grupo de Segurança</strong> e marque as seguintes regras de entrada: Permitir tráfego SSH, Permitir tráfego HTTP e Permitir Tráfego HTTPS</li>
       </ul>
-
-      <table>
-        <thead><tr><th>Tipo</th><th>Porta</th><th>Origem</th><th>Para quê?</th></tr></thead>
-        <tbody>
-          <tr><td><code>SSH</code></td><td><code>22</code></td><td><code>0.0.0.0/0</code></td><td>Acesso ao terminal</td></tr>
-          <tr><td><code>HTTP</code></td><td><code>80</code></td><td><code>0.0.0.0/0</code></td><td>Tráfego web padrão</td></tr>
-          <tr><td><code>HTTPS</code></td><td><code>443</code></td><td><code>0.0.0.0/0</code></td><td>Tráfego web seguro (TLS)</td></tr>
-        </tbody>
-      </table>
 
       <ul class="instructions">
         <li><strong>Configurar armazenamento:</strong> altere para <strong>20 GB</strong></li>
