@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWS: Load Balancer · Auto Scaling · CloudWatch · IAM</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f5f7fa;
+    --surface2: #ebeef3;
+    --border: #d0d7de;
+    --accent: #cf222e;
+    --accent2: #0969da;
+    --accent3: #1a7f37;
+    --accent4: #9a6700;
+    --text: #1a1f2e;
+    --text-muted: #57606a;
+    --aws-orange: #E07B00;
+    --aws-dark: #232F3E;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Sora', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; }
+
+  header { background: var(--aws-dark); border-bottom: 3px solid var(--aws-orange); padding: 2rem 2rem 1.5rem; position: relative; overflow: hidden; }
+  header::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 50%, rgba(255,153,0,.12) 0%, transparent 60%); }
+  .header-inner { max-width: 900px; margin: 0 auto; position: relative; }
+  .badge { display: inline-block; background: var(--aws-orange); color: #000; font-size: .65rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; padding: .25rem .7rem; border-radius: 2px; margin-bottom: .8rem; }
+  header h1 { font-size: clamp(1.4rem, 4vw, 2.2rem); font-weight: 700; color: #fff; line-height: 1.25; }
+  header h1 span { color: var(--aws-orange); }
+  header p { margin-top: .5rem; color: #c8d0d8; font-size: .95rem; font-weight: 300; }
+
+  main { max-width: 900px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+  .arch-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem 2rem; margin-bottom: 2.5rem; display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap; }
+  .arch-node { display: flex; flex-direction: column; align-items: center; gap: .35rem; min-width: 80px; }
+  .arch-icon { width: 52px; height: 52px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+  .arch-icon.ec2   { background: rgba(224,123,0,.15);  border: 1.5px solid var(--aws-orange); }
+  .arch-icon.elb   { background: rgba(9,105,218,.15);  border: 1.5px solid var(--accent2); }
+  .arch-icon.asg   { background: rgba(26,127,55,.15);  border: 1.5px solid var(--accent3); }
+  .arch-icon.cw    { background: rgba(154,103,0,.15);  border: 1.5px solid var(--accent4); }
+  .arch-icon.iam   { background: rgba(207,34,46,.15);  border: 1.5px solid var(--accent); }
+  .arch-label { font-size: .68rem; font-weight: 600; color: var(--text-muted); letter-spacing: .04em; text-transform: uppercase; text-align: center; }
+  .arch-arrow { font-size: 1.3rem; color: var(--text-muted); flex: 1; text-align: center; min-width: 20px; }
+  .arch-info { flex: 1; min-width: 200px; }
+  .arch-info h3 { font-size: 1rem; font-weight: 600; margin-bottom: .3rem; }
+  .arch-info p  { font-size: .85rem; color: var(--text-muted); }
+
+  .step { margin-bottom: 2rem; }
+  .step-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; }
+  .step-num { flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: .85rem; font-weight: 600; border: 2px solid; }
+  .step-num.orange { border-color: var(--aws-orange); color: var(--aws-orange); background: rgba(224,123,0,.1); }
+  .step-num.blue   { border-color: #0550ae; color: #0550ae; background: rgba(9,105,218,.1); }
+  .step-num.green  { border-color: var(--accent3); color: var(--accent3); background: rgba(26,127,55,.1); }
+  .step-num.yellow { border-color: var(--accent4); color: var(--accent4); background: rgba(154,103,0,.1); }
+  .step-num.red    { border-color: var(--accent); color: var(--accent); background: rgba(207,34,46,.1); }
+  .step-title-block h2 { font-size: 1.1rem; font-weight: 600; }
+  .step-title-block p  { font-size: .82rem; color: var(--text-muted); margin-top: .1rem; }
+  .step-body { padding-left: 52px; }
+
+  .instructions { list-style: none; display: flex; flex-direction: column; gap: .7rem; }
+  .instructions li { display: flex; gap: .75rem; align-items: flex-start; font-size: .9rem; color: var(--text); }
+  .instructions li::before { content: '→'; color: var(--aws-orange); font-weight: 700; flex-shrink: 0; margin-top: .05rem; }
+  .instructions li strong { color: var(--text); }
+
+  .code-block { background: #f0f4f8; border: 1px solid var(--border); border-left: 3px solid var(--accent2); border-radius: 6px; padding: 1rem 1.2rem; margin: .9rem 0; font-family: 'JetBrains Mono', monospace; font-size: .82rem; color: var(--text); overflow-x: auto; }
+  .code-block .comment { color: #6e7781; }
+  .code-block .cmd     { color: #116329; }
+  .code-block .flag    { color: #0550ae; }
+  .code-block .val     { color: #953800; }
+  .code-block .prompt  { color: #57606a; margin-right: .4rem; }
+
+  .alert { border-radius: 7px; padding: .9rem 1.1rem; font-size: .85rem; display: flex; gap: .7rem; align-items: flex-start; margin: 1rem 0; }
+  .alert.warn    { background: #fff8e6; border: 1px solid #e6a817; color: #7a4e00; }
+  .alert.info    { background: #ebf4fb; border: 1px solid rgba(9,105,218,.3); color: #0550ae; }
+  .alert.success { background: #eafaec; border: 1px solid #1a7f37; color: #14532d; }
+  .alert-icon { font-size: 1.1rem; flex-shrink: 0; }
+  .alert p { margin: 0; line-height: 1.5; }
+  .alert p strong { display: block; margin-bottom: .2rem; }
+
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; margin: .8rem 0; }
+  th { background: var(--surface2); color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; font-size: .72rem; padding: .6rem .9rem; text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: .6rem .9rem; border-bottom: 1px solid rgba(208,215,222,.5); color: var(--text); vertical-align: top; }
+  td code { font-family: 'JetBrains Mono', monospace; background: var(--surface2); border: 1px solid var(--border); padding: .1rem .4rem; border-radius: 3px; font-size: .8rem; color: #0550ae; }
+  tr:last-child td { border-bottom: none; }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: .5rem; }
+  .checklist li { display: flex; gap: .6rem; align-items: center; font-size: .9rem; }
+  .checklist li::before { content: '☐'; font-size: 1rem; color: var(--accent3); }
+
+  .section-label { font-size: .68rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--aws-orange); margin-bottom: 1.2rem; display: flex; align-items: center; gap: .6rem; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .test-block { border-top: 1px solid var(--border); margin-top: 1.2rem; padding-top: 1.2rem; }
+  .test-label { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--aws-orange); margin-bottom: .8rem; }
+
+  footer { text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: .78rem; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="badge">Atividade Prática AWS</div>
+    <h1>Load Balancer · Auto Scaling<br><span>CloudWatch · SNS · IAM</span></h1>
+    <p>Escalabilidade, monitoramento e controle de acesso — guia para iniciantes</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- ARQUITETURA -->
+  <div class="section-label">Visão Geral</div>
+  <div class="arch-box">
+    <div class="arch-node"><div class="arch-icon elb">⚖️</div><div class="arch-label">Load<br>Balancer</div></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node"><div class="arch-icon asg">📈</div><div class="arch-label">Auto<br>Scaling</div></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node"><div class="arch-icon ec2">🖥️</div><div class="arch-label">EC2<br>x N</div></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node"><div class="arch-icon cw">📊</div><div class="arch-label">CloudWatch<br>+ SNS</div></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node"><div class="arch-icon iam">🔐</div><div class="arch-label">IAM</div></div>
+    <div class="arch-info">
+      <h3>O que vamos fazer</h3>
+      <p>Criar um ALB distribuindo tráfego entre instâncias EC2, configurar Auto Scaling para escalar automaticamente, monitorar métricas com CloudWatch e alertas via SNS, e gerenciar acessos com IAM.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- PARTE 1 — LOAD BALANCER + AUTO SCALING         -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div class="section-label">Parte 1 — Load Balancer + Auto Scaling</div>
+
+  <!-- PASSO 1 -->
+  <div class="section-label">Passo 1 — Criar um Launch Template</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num orange">01</div>
+      <div class="step-title-block">
+        <h2>Criar o Launch Template</h2>
+        <p>O modelo que o Auto Scaling usará para criar novas instâncias</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>O que é um Launch Template?</strong> É um modelo que define as configurações de uma instância EC2 — AMI, tipo, chave, Security Group, User Data. O Auto Scaling usa esse modelo para criar novas instâncias automaticamente quando necessário.</p>
+      </div>
+
+      <ul class="instructions">
+        <li>Vá em <strong>EC2 → Launch Templates → Criar launch template</strong></li>
+        <li>Nome: <code>meu-template</code></li>
+        <li>AMI: <strong>Ubuntu Server 24.04 LTS</strong></li>
+        <li>Tipo de instância: <strong>t3.small</strong></li>
+        <li>Par de chaves: <strong>vockey</strong></li>
+        <li>Security Group: selecione um SG com as portas <strong>22</strong>, <strong>80</strong> e <strong>443</strong> liberadas</li>
+        <li>Expanda <strong>Detalhes avançados → Dados do usuário</strong> e cole:</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="comment">#!/bin/bash</span><br>
+        apt update <span class="flag">-y</span><br>
+        apt install <span class="flag">-y</span> nginx<br>
+        systemctl start nginx<br>
+        systemctl enable nginx<br>
+        <span class="comment"># Página de identificação da instância</span><br>
+        echo "&lt;h1&gt;Instância: $(hostname -f)&lt;/h1&gt;" &gt; /var/www/html/index.html
+      </div>
+
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p>O User Data instala o nginx e escreve o hostname da instância na página. Isso permite ver na prática o Load Balancer alternando entre instâncias diferentes durante os testes.</p>
+      </div>
+
+      <ul class="instructions">
+        <li>Clique em <strong>Criar launch template</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- PASSO 2 -->
+  <div class="section-label">Passo 2 — Criar o Target Group</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num blue">02</div>
+      <div class="step-title-block">
+        <h2>Criar o Target Group</h2>
+        <p>O grupo de instâncias que receberá o tráfego do Load Balancer</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>O que é um Target Group?</strong> Um conjunto de destinos (instâncias EC2) que o Load Balancer pode encaminhar requisições. O ALB verifica periodicamente a saúde de cada instância e só envia tráfego para as saudáveis.</p>
+      </div>
+
+      <ul class="instructions">
+        <li>Vá em <strong>EC2 → Target Groups → Criar target group</strong></li>
+        <li>Tipo de destino: <strong>Instâncias</strong></li>
+        <li>Nome: <code>meu-target-group</code></li>
+        <li>Protocolo: <strong>HTTP</strong> | Porta: <strong>80</strong></li>
+        <li>VPC: selecione a <strong>VPC padrão</strong></li>
+        <li>Health check — protocolo: <strong>HTTP</strong> | Caminho: <code>/</code></li>
+        <li>Clique em <strong>Próximo</strong> e depois em <strong>Criar target group</strong></li>
+      </ul>
+
+      <div class="alert warn">
+        <div class="alert-icon">⚠️</div>
+        <p><strong>Sem instâncias por enquanto</strong> — o Target Group começa vazio. O Auto Scaling vai registrar as instâncias automaticamente mais à frente.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- PASSO 3 -->
+  <div class="section-label">Passo 3 — Criar o Application Load Balancer</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num green">03</div>
+      <div class="step-title-block">
+        <h2>Criar o ALB (Application Load Balancer)</h2>
+        <p>O ponto de entrada único que distribui o tráfego entre as instâncias</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>O que é um ALB?</strong> Um Load Balancer de camada 7 (HTTP/HTTPS) que recebe todo o tráfego de entrada e distribui entre as instâncias do Target Group, usando algoritmo round-robin por padrão. Se uma instância cair, o ALB para de enviar tráfego para ela automaticamente.</p>
+      </div>
+
+      <ul class="instructions">
+        <li>Vá em <strong>EC2 → Load Balancers → Criar load balancer</strong></li>
+        <li>Selecione <strong>Application Load Balancer</strong></li>
+        <li>Nome: <code>meu-alb</code></li>
+        <li>Esquema: <strong>Voltado para a internet</strong></li>
+        <li>Tipo de endereço IP: <strong>IPv4</strong></li>
+        <li>VPC: selecione a <strong>VPC padrão</strong></li>
+        <li>Zonas de disponibilidade: marque <strong>todas as AZs disponíveis</strong></li>
+        <li>Security Group: crie um novo ou selecione um com porta <strong>80</strong> liberada para <code>0.0.0.0/0</code></li>
+        <li>Em <strong>Listeners</strong>: protocolo <strong>HTTP</strong>, porta <strong>80</strong>, encaminhar para <code>meu-target-group</code></li>
+        <li>Clique em <strong>Criar load balancer</strong></li>
+      </ul>
+
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>Múltiplas AZs:</strong> ao selecionar todas as zonas de disponibilidade, o ALB pode distribuir tráfego entre instâncias em datacenters diferentes — garantindo alta disponibilidade mesmo se uma AZ tiver problemas.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- PASSO 4 -->
+  <div class="section-label">Passo 4 — Criar o Auto Scaling Group</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num yellow">04</div>
+      <div class="step-title-block">
+        <h2>Criar o Auto Scaling Group</h2>
+        <p>Escalar instâncias automaticamente conforme a demanda</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>O que é Auto Scaling?</strong> Um serviço que monitora a carga das suas instâncias e adiciona ou remove EC2s automaticamente dentro de limites que você define. Se a CPU subir muito, ele sobe mais instâncias. Se a carga cair, ele termina as desnecessárias para economizar custo.</p>
+      </div>
+
+      <ul class="instructions">
+        <li>Vá em <strong>EC2 → Auto Scaling Groups → Criar Auto Scaling Group</strong></li>
+        <li>Nome: <code>meu-asg</code></li>
+        <li>Launch template: selecione <strong>meu-template</strong></li>
+        <li>VPC: <strong>VPC padrão</strong> — selecione <strong>todas as sub-redes disponíveis</strong></li>
+        <li>Em <strong>Balanceamento de carga</strong>: selecione <strong>Anexar a um load balancer existente</strong> → <code>meu-target-group</code></li>
+        <li>Ative a opção <strong>Verificações de integridade do Elastic Load Balancing</strong></li>
+      </ul>
+
+      <table>
+        <thead><tr><th>Configuração</th><th>Valor</th><th>Significado</th></tr></thead>
+        <tbody>
+          <tr><td>Capacidade desejada</td><td><code>2</code></td><td>Número inicial de instâncias</td></tr>
+          <tr><td>Capacidade mínima</td><td><code>1</code></td><td>Nunca desce abaixo de 1</td></tr>
+          <tr><td>Capacidade máxima</td><td><code>4</code></td><td>Nunca sobe acima de 4</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="instructions">
+        <li>Em <strong>Políticas de escalabilidade</strong>: selecione <strong>Política de rastreamento de destino</strong></li>
+        <li>Métrica: <strong>Utilização média de CPU</strong> | Valor alvo: <strong>60%</strong></li>
+        <li>Clique em <strong>Criar Auto Scaling Group</strong></li>
+      </ul>
+
+      <div class="alert success">
+        <div class="alert-icon">✅</div>
+        <p>O Auto Scaling vai criar 2 instâncias usando o Launch Template, registrá-las no Target Group e o ALB começará a distribuir o tráfego entre elas automaticamente.</p>
+      </div>
+
+      <div class="test-block">
+        <p class="test-label">🧪 Teste — Load Balancer em ação</p>
+        <ul class="instructions">
+          <li>Vá em <strong>EC2 → Load Balancers</strong> e copie o <strong>DNS name</strong> do <code>meu-alb</code></li>
+          <li>Acesse <code>http://&lt;DNS-DO-ALB&gt;</code> no navegador várias vezes</li>
+          <li>O hostname na página deve alternar entre as duas instâncias — confirmando que o ALB está distribuindo o tráfego</li>
+        </ul>
+        <div class="alert success">
+          <div class="alert-icon">✅</div>
+          <p>Se o hostname mudar entre as requisições, o Load Balancer está funcionando corretamente.</p>
+        </div>
+      </div>
+
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>E no ECS?</strong> O mesmo ALB e Target Group funcionam com ECS — na criação do Service, basta apontar o Load Balancer e o Target Group. O ECS registra e desregistra as tasks automaticamente conforme elas sobem e descem.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- PARTE 2 — CLOUDWATCH + SNS                    -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div class="section-label" style="margin-top:1rem;">Parte 2 — CloudWatch + SNS</div>
+
+  <div class="alert info" style="margin-bottom:1.5rem;">
+    <div class="alert-icon">💡</div>
+    <p><strong>O que é CloudWatch?</strong> O serviço de monitoramento da AWS. Ele coleta métricas de todos os serviços (CPU, memória, requisições, latência) e permite criar alarmes que disparam ações automáticas quando um valor ultrapassa um limite. O <strong>SNS (Simple Notification Service)</strong> é o serviço de notificações — ele envia e-mails, SMS ou aciona outras ações quando um alarme dispara.</p>
+  </div>
+
+  <!-- PASSO 5 -->
+  <div class="section-label">Passo 5 — Criar um tópico SNS</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num orange">05</div>
+      <div class="step-title-block">
+        <h2>Criar o tópico SNS para receber alertas</h2>
+        <p>O canal de notificação que o CloudWatch vai usar</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <ul class="instructions">
+        <li>Vá em <strong>SNS → Tópicos → Criar tópico</strong></li>
+        <li>Tipo: <strong>Padrão</strong></li>
+        <li>Nome: <code>alertas-aws</code></li>
+        <li>Clique em <strong>Criar tópico</strong></li>
+        <li>Na página do tópico, clique em <strong>Criar assinatura</strong></li>
+        <li>Protocolo: <strong>E-mail</strong></li>
+        <li>Endpoint: <strong>seu e-mail</strong></li>
+        <li>Clique em <strong>Criar assinatura</strong></li>
+      </ul>
+
+      <div class="alert warn">
+        <div class="alert-icon">⚠️</div>
+        <p><strong>Confirme a assinatura!</strong> A AWS envia um e-mail de confirmação. Clique no link <em>"Confirm subscription"</em> — sem isso, os alertas não chegam.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- PASSO 6 -->
+  <div class="section-label">Passo 6 — Alarme de CPU alta</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num blue">06</div>
+      <div class="step-title-block">
+        <h2>Alarme: CPU acima de 70%</h2>
+        <p>Receber alerta quando uma instância estiver sobrecarregada</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <ul class="instructions">
+        <li>Vá em <strong>CloudWatch → Alarmes → Criar alarme</strong></li>
+        <li>Clique em <strong>Selecionar métrica</strong></li>
+        <li>Navegue até <strong>EC2 → Por instância</strong> e selecione a métrica <strong>CPUUtilization</strong> de uma das instâncias do ASG</li>
+        <li>Clique em <strong>Selecionar métrica</strong></li>
+      </ul>
+
+      <table>
+        <thead><tr><th>Campo</th><th>Valor</th></tr></thead>
+        <tbody>
+          <tr><td>Estatística</td><td>Média</td></tr>
+          <tr><td>Período</td><td>5 minutos</td></tr>
+          <tr><td>Condição</td><td>Maior que</td></tr>
+          <tr><td>Limite</td><td><code>70</code> (%)</td></tr>
+          <tr><td>Pontos para alarme</td><td>2 de 2 (10 min consecutivos)</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="instructions">
+        <li>Em <strong>Notificação</strong>: selecione <strong>Em alarme</strong> → tópico <code>alertas-aws</code></li>
+        <li>Nome do alarme: <code>cpu-alta</code></li>
+        <li>Clique em <strong>Criar alarme</strong></li>
+      </ul>
+
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>Por que 2 de 2?</strong> Exigir 2 períodos consecutivos evita falsos positivos — um pico momentâneo de CPU não vai disparar o alarme, apenas uma sobrecarga sustentada por 10 minutos.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- PASSO 7 -->
+  <div class="section-label">Passo 7 — Alarme de requisições no Load Balancer</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num green">07</div>
+      <div class="step-title-block">
+        <h2>Alarme: requisições acima do limite</h2>
+        <p>Receber alerta quando o tráfego estiver muito alto</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <ul class="instructions">
+        <li>Vá em <strong>CloudWatch → Alarmes → Criar alarme → Selecionar métrica</strong></li>
+        <li>Navegue até <strong>ApplicationELB → Por load balancer</strong></li>
+        <li>Selecione a métrica <strong>RequestCount</strong> do <code>meu-alb</code></li>
+      </ul>
+
+      <table>
+        <thead><tr><th>Campo</th><th>Valor</th></tr></thead>
+        <tbody>
+          <tr><td>Estatística</td><td>Soma</td></tr>
+          <tr><td>Período</td><td>1 minuto</td></tr>
+          <tr><td>Condição</td><td>Maior que</td></tr>
+          <tr><td>Limite</td><td><code>1000</code> (requisições/min)</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="instructions">
+        <li>Em <strong>Notificação</strong>: selecione <strong>Em alarme</strong> → tópico <code>alertas-aws</code></li>
+        <li>Nome do alarme: <code>requisicoes-altas</code></li>
+        <li>Clique em <strong>Criar alarme</strong></li>
+      </ul>
+
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>Ajuste o limite conforme sua aplicação.</strong> 1000 req/min é um exemplo — em produção, baseie esse valor no tráfego esperado da sua aplicação. Você pode visualizar o tráfego histórico nos gráficos do CloudWatch antes de definir o limite.</p>
+      </div>
+
+      <div class="test-block">
+        <p class="test-label">🧪 Teste — Ver métricas no CloudWatch</p>
+        <ul class="instructions">
+          <li>Vá em <strong>CloudWatch → Métricas → EC2 → Por instância</strong></li>
+          <li>Selecione <strong>CPUUtilization</strong> das instâncias do ASG</li>
+          <li>Visualize o gráfico em tempo real — você verá as métricas atualizando a cada período</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- PARTE 3 — IAM                                 -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div class="section-label" style="margin-top:1rem;">Parte 3 — IAM: Usuários e Permissões</div>
+
+  <div class="alert info" style="margin-bottom:1.5rem;">
+    <div class="alert-icon">💡</div>
+    <p><strong>O que é IAM?</strong> Identity and Access Management — o serviço de controle de acesso da AWS. Com ele você define <em>quem pode fazer o quê</em> dentro da conta: criar usuários, grupos, funções e políticas que concedem ou negam permissões específicas a cada recurso.</p>
+  </div>
+
+  <!-- PASSO 8 -->
+  <div class="section-label">Passo 8 — Criar um usuário com permissão específica</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num orange">08</div>
+      <div class="step-title-block">
+        <h2>Criar usuário com acesso somente leitura ao EC2</h2>
+        <p>Um usuário que pode visualizar instâncias mas não criar nem deletar</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>Princípio do menor privilégio:</strong> cada usuário deve ter apenas as permissões que precisa para fazer seu trabalho — nada a mais. Isso limita o impacto em caso de credenciais comprometidas.</p>
+      </div>
+
+      <ul class="instructions">
+        <li>Vá em <strong>IAM → Usuários → Criar usuário</strong></li>
+        <li>Nome: <code>dev-readonly</code></li>
+        <li>Marque <strong>Fornecer acesso ao console de gerenciamento</strong></li>
+        <li>Selecione <strong>Criar um usuário do IAM</strong></li>
+        <li>Senha: defina uma senha ou deixe a AWS gerar</li>
+        <li>Marque <strong>O usuário deve criar uma nova senha no próximo login</strong></li>
+        <li>Em <strong>Definir permissões</strong>: selecione <strong>Anexar políticas diretamente</strong></li>
+        <li>Busque e selecione <strong>AmazonEC2ReadOnlyAccess</strong></li>
+        <li>Clique em <strong>Criar usuário</strong></li>
+      </ul>
+
+      <div class="alert success">
+        <div class="alert-icon">✅</div>
+        <p>O usuário <code>dev-readonly</code> pode entrar no console e ver instâncias EC2, mas não consegue criar, iniciar, parar ou deletar nada.</p>
+      </div>
+
+      <div class="test-block">
+        <p class="test-label">🧪 Teste — Validar restrições do usuário</p>
+        <ul class="instructions">
+          <li>Copie o link de login do IAM (disponível na página do usuário)</li>
+          <li>Abra uma janela anônima do navegador e faça login com <code>dev-readonly</code></li>
+          <li>Tente parar uma instância EC2 — deve aparecer a mensagem <em>"Você não tem permissão"</em></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- PASSO 9 -->
+  <div class="section-label">Passo 9 — Criar grupo com política e adicionar usuário</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num blue">09</div>
+      <div class="step-title-block">
+        <h2>Criar grupo de desenvolvedores com política gerenciada</h2>
+        <p>Gerenciar permissões por grupo facilita a administração com muitos usuários</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>Por que usar grupos?</strong> Em vez de atribuir permissões a cada usuário individualmente, você atribui ao grupo. Ao adicionar um usuário ao grupo, ele herda todas as permissões — e ao removê-lo, perde o acesso. Muito mais fácil de manter em equipes.</p>
+      </div>
+
+      <ul class="instructions">
+        <li>Vá em <strong>IAM → Grupos de usuários → Criar grupo</strong></li>
+        <li>Nome do grupo: <code>desenvolvedores</code></li>
+        <li>Em <strong>Anexar políticas de permissões</strong>, busque e selecione:</li>
+      </ul>
+
+      <table>
+        <thead><tr><th>Política</th><th>O que permite</th></tr></thead>
+        <tbody>
+          <tr><td><code>AmazonEC2FullAccess</code></td><td>Gerenciar instâncias EC2 completamente</td></tr>
+          <tr><td><code>AmazonRDSReadOnlyAccess</code></td><td>Ver bancos RDS, sem alterar</td></tr>
+          <tr><td><code>CloudWatchReadOnlyAccess</code></td><td>Ver métricas e alarmes</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="instructions">
+        <li>Clique em <strong>Criar grupo</strong></li>
+        <li>Agora adicione o usuário ao grupo: <strong>IAM → Grupos → desenvolvedores → Adicionar usuários</strong></li>
+        <li>Selecione <code>dev-readonly</code> e clique em <strong>Adicionar usuários</strong></li>
+      </ul>
+
+      <div class="alert warn">
+        <div class="alert-icon">⚠️</div>
+        <p><strong>Permissões se acumulam:</strong> o usuário <code>dev-readonly</code> agora tem as permissões da política <code>AmazonEC2ReadOnlyAccess</code> (atribuída diretamente) <em>mais</em> as do grupo <code>desenvolvedores</code>. Na prática, é melhor escolher uma abordagem só — individual <em>ou</em> por grupo.</p>
+      </div>
+
+      <div class="test-block">
+        <p class="test-label">🧪 Teste — Verificar permissões acumuladas</p>
+        <ul class="instructions">
+          <li>Faça login novamente com <code>dev-readonly</code> na janela anônima</li>
+          <li>Agora tente criar uma instância EC2 — deve funcionar (permissão herdada do grupo)</li>
+          <li>Tente criar um banco RDS — deve ser bloqueado (RDS é somente leitura)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- PASSO 10 -->
+  <div class="section-label">Passo 10 — Criar uma política personalizada</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num green">10</div>
+      <div class="step-title-block">
+        <h2>Criar uma política JSON personalizada</h2>
+        <p>Controle granular: permitir apenas listar e descrever instâncias EC2</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>Políticas gerenciadas vs personalizadas:</strong> as políticas da AWS (como <code>AmazonEC2ReadOnlyAccess</code>) são amplas e convenientes. Políticas personalizadas permitem definir exatamente quais ações são permitidas — ideal para seguir o princípio do menor privilégio.</p>
+      </div>
+
+      <ul class="instructions">
+        <li>Vá em <strong>IAM → Políticas → Criar política</strong></li>
+        <li>Clique em <strong>JSON</strong> e cole o código abaixo:</li>
+      </ul>
+
+      <div class="code-block">
+        {<br>
+        &nbsp;&nbsp;<span class="val">"Version"</span>: <span class="val">"2012-10-17"</span>,<br>
+        &nbsp;&nbsp;<span class="val">"Statement"</span>: [<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">"Sid"</span>: <span class="val">"ListarInstancias"</span>,<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">"Effect"</span>: <span class="val">"Allow"</span>,<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">"Action"</span>: [<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">"ec2:DescribeInstances"</span>,<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">"ec2:DescribeInstanceStatus"</span>,<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">"ec2:DescribeTags"</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;],<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">"Resource"</span>: <span class="val">"*"</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+        &nbsp;&nbsp;]<br>
+        }
+      </div>
+
+      <ul class="instructions">
+        <li>Nome: <code>ec2-somente-listar</code></li>
+        <li>Descrição: <code>Permite apenas listar e descrever instâncias EC2</code></li>
+        <li>Clique em <strong>Criar política</strong></li>
+      </ul>
+
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>Estrutura de uma política IAM:</strong><br>
+        <code>Effect: Allow/Deny</code> — permite ou nega<br>
+        <code>Action</code> — lista de operações permitidas (ex: <code>ec2:DescribeInstances</code>)<br>
+        <code>Resource: "*"</code> — aplica a todos os recursos; pode ser restringido a um ARN específico</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- CHECKLIST -->
+  <div class="section-label">Checklist Final</div>
+  <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem 2rem; margin-bottom: 2rem;">
+
+    <p style="font-size:.8rem; color:var(--text-muted); margin-bottom:1rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em;">Parte 1 — Load Balancer + Auto Scaling</p>
+    <ul class="checklist">
+      <li>Launch Template <code>meu-template</code> criado com nginx no User Data</li>
+      <li>Target Group <code>meu-target-group</code> criado na porta 80</li>
+      <li>ALB <code>meu-alb</code> criado e apontando para o Target Group</li>
+      <li>Auto Scaling Group <code>meu-asg</code> com 2 instâncias desejadas (mín 1, máx 4)</li>
+      <li>Política de escalabilidade por CPU (alvo: 60%)</li>
+      <li>DNS do ALB acessível e alternando entre instâncias</li>
+    </ul>
+
+    <p style="font-size:.8rem; color:var(--text-muted); margin: 1.2rem 0 .8rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em;">Parte 2 — CloudWatch + SNS</p>
+    <ul class="checklist">
+      <li>Tópico SNS <code>alertas-aws</code> criado e assinatura de e-mail confirmada</li>
+      <li>Alarme <code>cpu-alta</code> criado — CPU &gt; 70% por 10 minutos</li>
+      <li>Alarme <code>requisicoes-altas</code> criado — RequestCount &gt; 1000/min</li>
+      <li>Ambos os alarmes apontando para o tópico SNS</li>
+    </ul>
+
+    <p style="font-size:.8rem; color:var(--text-muted); margin: 1.2rem 0 .8rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em;">Parte 3 — IAM</p>
+    <ul class="checklist">
+      <li>Usuário <code>dev-readonly</code> criado com <code>AmazonEC2ReadOnlyAccess</code></li>
+      <li>Testado no console — bloqueado ao tentar parar instâncias</li>
+      <li>Grupo <code>desenvolvedores</code> criado com EC2 Full + RDS Read + CloudWatch Read</li>
+      <li>Usuário adicionado ao grupo</li>
+      <li>Política personalizada <code>ec2-somente-listar</code> criada em JSON</li>
+    </ul>
+  </div>
+
+</main>
+
+<footer>
+  Atividade Prática AWS — Load Balancer · Auto Scaling · CloudWatch · SNS · IAM &nbsp;|&nbsp; Guia para iniciantes
+</footer>
+
+</body>
+</html>

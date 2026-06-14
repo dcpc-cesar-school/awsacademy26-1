@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trilha de Laboratórios AWS</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --surface: #ffffff;
+    --border: #e3e7ed;
+    --ink: #14181f;
+    --muted: #5b6472;
+    --orange: #E07B00;
+    --orange-soft: rgba(224,123,0,.10);
+    --blue: #0969da;
+    --blue-soft: rgba(9,105,218,.10);
+    --purple: #6e40c9;
+    --purple-soft: rgba(110,64,201,.10);
+    --term-bg: #14181f;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.7;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(20,24,31,.05) 1px, transparent 0);
+    background-size: 28px 28px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 4.5rem 1.5rem 3rem;
+  }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 1.1rem;
+  }
+  h1 {
+    font-size: clamp(2.1rem, 5.5vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: -.01em;
+    max-width: 14ch;
+  }
+  h1 span { color: var(--orange); }
+  .lede {
+    margin-top: 1.1rem;
+    font-size: 1.05rem;
+    font-weight: 300;
+    color: var(--muted);
+    max-width: 46ch;
+  }
+
+  /* ── TERMINAL ── */
+  .terminal {
+    margin-top: 2.5rem;
+    background: var(--term-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px -20px rgba(20,24,31,.35);
+    max-width: 560px;
+  }
+  .terminal-bar {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .7rem 1rem;
+    background: #1d2330;
+    border-bottom: 1px solid #2a3142;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot.red    { background: #ff5f57; }
+  .dot.yellow { background: #febc2e; }
+  .dot.green  { background: #28c840; }
+  .terminal-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .72rem;
+    color: #6b7280;
+    margin-left: .5rem;
+    letter-spacing: .04em;
+  }
+  .terminal-body {
+    padding: 1.25rem 1.4rem 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .82rem;
+  }
+  .terminal-body .prompt-line {
+    color: #8b949e;
+    margin-bottom: 1rem;
+  }
+  .terminal-body .prompt-line .prompt { color: #56d364; margin-right: .5rem; }
+  .track-item {
+    display: flex;
+    align-items: baseline;
+    gap: .9rem;
+    padding: .45rem 0;
+    border-top: 1px solid #232a3a;
+    color: #cdd5e0;
+  }
+  .track-item:first-of-type { border-top: none; }
+  .track-item .num {
+    color: #6b7280;
+    font-weight: 600;
+  }
+  .track-item .name { color: #e6edf3; font-weight: 500; }
+  .track-item .tag {
+    margin-left: auto;
+    font-size: .72rem;
+    color: #8b949e;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .track-item.t1 .num, .track-item.t1 .name { color: var(--orange); }
+  .track-item.t2 .num, .track-item.t2 .name { color: #79c0ff; }
+  .track-item.t3 .num, .track-item.t3 .name { color: #b39ef0; }
+
+  /* ── MAIN / MODULES ── */
+  main {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem 5rem;
+  }
+
+  .modules { position: relative; }
+  .modules::before {
+    content: '';
+    position: absolute;
+    left: 27px;
+    top: 56px;
+    bottom: 56px;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .module {
+    position: relative;
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 1.6rem;
+    padding: 2.6rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .module:last-child { border-bottom: none; }
+
+  .module-num {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--accent);
+    position: relative;
+    z-index: 1;
+  }
+
+  .module-content { min-width: 0; }
+
+  .module-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: .4rem;
+  }
+  .module h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    margin-bottom: .7rem;
+  }
+  .module-desc {
+    font-size: .95rem;
+    color: var(--muted);
+    max-width: 56ch;
+    margin-bottom: 1.3rem;
+  }
+
+  /* mini architecture diagram */
+  .diagram {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.3rem;
+  }
+  .diagram-node {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: .45rem .8rem;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .diagram-node .icon { font-size: 1rem; }
+  .diagram-arrow { color: var(--muted); font-size: .9rem; }
+
+  /* topic chips */
+  .topics {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-bottom: 1.5rem;
+  }
+  .topics li {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .72rem;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: .3rem .8rem;
+  }
+
+  /* CTA */
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+    border: 1.5px solid var(--ink);
+    border-radius: 8px;
+    padding: .65rem 1.3rem;
+    transition: background .15s ease, color .15s ease, transform .15s ease;
+  }
+  .cta:hover {
+    background: var(--ink);
+    color: #fff;
+  }
+  .cta:hover .arrow { transform: translateX(3px); }
+  .cta .arrow { transition: transform .15s ease; }
+  .cta:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 3rem;
+    border-top: 1px solid var(--border);
+    font-size: .8rem;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .6rem;
+  }
+  footer .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .72rem;
+  }
+
+  @media (max-width: 600px) {
+    .modules::before { left: 23px; }
+    .module { grid-template-columns: 48px 1fr; gap: 1rem; }
+    .module-num { width: 48px; height: 48px; font-size: .85rem; }
+    .track-item .tag { white-space: normal; text-align: left; margin-left: 0; }
+    .track-item { flex-wrap: wrap; gap: .3rem .9rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .cta, .cta .arrow { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="hero">
+    <p class="eyebrow">AWS Academy · Trilha de Laboratórios</p>
+    <h1>Construa, conteinerize e <span>escale</span> na AWS</h1>
+    <p class="lede">Três laboratórios práticos, em sequência: do primeiro servidor com banco de dados até uma arquitetura com balanceamento de carga, escalonamento automático, monitoramento e controle de acesso.</p>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+        <span class="terminal-title">lab-track --status</span>
+      </div>
+      <div class="terminal-body">
+        <p class="prompt-line"><span class="prompt">$</span>aws-academy --laboratorios</p>
+        <div class="track-item t1">
+          <span class="num">01</span>
+          <span class="name">fundacao</span>
+          <span class="tag">EC2 · RDS · Node.js</span>
+        </div>
+        <div class="track-item t2">
+          <span class="num">02</span>
+          <span class="name">containers</span>
+          <span class="tag">Docker · Docker Hub · ECS</span>
+        </div>
+        <div class="track-item t3">
+          <span class="num">03</span>
+          <span class="name">escala-e-acesso</span>
+          <span class="tag">ALB · Auto Scaling · CloudWatch · SNS · IAM</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="modules">
+
+      <!-- MÓDULO 01 -->
+      <section class="module" style="--accent: #E07B00; --accent-soft: rgba(224,123,0,.08);">
+        <div class="module-num">01</div>
+        <div class="module-content">
+          <p class="module-eyebrow">Fundação</p>
+          <h2>Servidor e banco de dados na nuvem</h2>
+
+          <div class="diagram">
+            <div class="diagram-node"><span class="icon">🖥️</span> EC2 (Ubuntu)</div>
+            <span class="diagram-arrow">→</span>
+            <div class="diagram-node"><span class="icon">🗄️</span> RDS PostgreSQL</div>
+            <span class="diagram-arrow">→</span>
+            <div class="diagram-node"><span class="icon">🚀</span> API Node.js</div>
+          </div>
+
+          <p class="module-desc">Suba uma instância EC2 com Ubuntu, conecte a um banco RDS PostgreSQL através do Security Group correto e publique um servidor Node.js acessível pela internet.</p>
+
+          <ul class="topics">
+            <li>EC2</li>
+            <li>Security Groups</li>
+            <li>RDS PostgreSQL</li>
+            <li>psql</li>
+            <li>Node.js</li>
+          </ul>
+
+          <a class="cta" href="guia-ec2-rds-aws.html">Abrir guia <span class="arrow">→</span></a>
+        </div>
+      </section>
+
+      <!-- MÓDULO 02 -->
+      <section class="module" style="--accent: #0969da; --accent-soft: rgba(9,105,218,.08);">
+        <div class="module-num">02</div>
+        <div class="module-content">
+          <p class="module-eyebrow">Containers</p>
+          <h2>Empacote e orquestre com Docker e ECS</h2>
+
+          <div class="diagram">
+            <div class="diagram-node"><span class="icon">🐳</span> Docker Compose</div>
+            <span class="diagram-arrow">→</span>
+            <div class="diagram-node"><span class="icon">📦</span> Docker Hub</div>
+            <span class="diagram-arrow">→</span>
+            <div class="diagram-node"><span class="icon">⚙️</span> ECS (EC2)</div>
+          </div>
+
+          <p class="module-desc">Instale Docker e Docker Compose automaticamente via User Data, construa e publique uma imagem no Docker Hub, e implante essa imagem em um cluster ECS gerenciado.</p>
+
+          <ul class="topics">
+            <li>Docker</li>
+            <li>Dockerfile</li>
+            <li>Docker Compose</li>
+            <li>Docker Hub</li>
+            <li>ECS</li>
+            <li>Task Definition</li>
+          </ul>
+
+          <a class="cta" href="guia-docker-ecs-aws.html">Abrir guia <span class="arrow">→</span></a>
+        </div>
+      </section>
+
+      <!-- MÓDULO 03 -->
+      <section class="module" style="--accent: #6e40c9; --accent-soft: rgba(110,64,201,.08);">
+        <div class="module-num">03</div>
+        <div class="module-content">
+          <p class="module-eyebrow">Escala &amp; Operação</p>
+          <h2>Balanceamento de carga, auto scaling e acesso</h2>
+
+          <div class="diagram">
+            <div class="diagram-node"><span class="icon">⚖️</span> Load Balancer</div>
+            <span class="diagram-arrow">→</span>
+            <div class="diagram-node"><span class="icon">📈</span> Auto Scaling</div>
+            <span class="diagram-arrow">→</span>
+            <div class="diagram-node"><span class="icon">📊</span> CloudWatch + SNS</div>
+            <span class="diagram-arrow">→</span>
+            <div class="diagram-node"><span class="icon">🔐</span> IAM</div>
+          </div>
+
+          <p class="module-desc">Distribua o tráfego entre instâncias com um Application Load Balancer, escale automaticamente com Auto Scaling, configure alertas de CPU e tráfego com CloudWatch + SNS, e gerencie usuários e permissões com IAM.</p>
+
+          <ul class="topics">
+            <li>ALB</li>
+            <li>Target Groups</li>
+            <li>Auto Scaling Group</li>
+            <li>CloudWatch</li>
+            <li>SNS</li>
+            <li>IAM</li>
+          </ul>
+
+          <a class="cta" href="guia-elb-asg-iam-aws.html">Abrir guia <span class="arrow">→</span></a>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer>
+    <span>Trilha de Laboratórios AWS — guias para iniciantes</span>
+    <span class="mono">AWS Academy · Learner Lab</span>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWS: Docker na EC2 + ECS — Guia Prático</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f5f7fa;
+    --surface2: #ebeef3;
+    --border: #d0d7de;
+    --accent: #cf222e;
+    --accent2: #0969da;
+    --accent3: #1a7f37;
+    --accent4: #9a6700;
+    --text: #1a1f2e;
+    --text-muted: #57606a;
+    --aws-orange: #E07B00;
+    --aws-dark: #232F3E;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--aws-dark);
+    border-bottom: 3px solid var(--aws-orange);
+    padding: 2rem 2rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, rgba(255,153,0,.12) 0%, transparent 60%);
+  }
+  .header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .badge {
+    display: inline-block;
+    background: var(--aws-orange);
+    color: #000;
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: .25rem .7rem;
+    border-radius: 2px;
+    margin-bottom: .8rem;
+  }
+  header h1 {
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.25;
+  }
+  header h1 span { color: var(--aws-orange); }
+  header p {
+    margin-top: .5rem;
+    color: #c8d0d8;
+    font-size: .95rem;
+    font-weight: 300;
+  }
+
+  /* ── LAYOUT ── */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  /* ── OVERVIEW ARCH ── */
+  .arch-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+  }
+  .arch-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .35rem;
+    min-width: 90px;
+  }
+  .arch-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+  }
+  .arch-icon.ec2 { background: rgba(255,153,0,.18); border: 1.5px solid var(--aws-orange); }
+  .arch-icon.sg  { background: rgba(249,129,74,.18);  border: 1.5px solid #f9814a; }
+  .arch-icon.rds { background: rgba(121,192,255,.18); border: 1.5px solid var(--accent2); }
+  .arch-label { font-size: .72rem; font-weight: 600; color: var(--text-muted); letter-spacing: .04em; text-transform: uppercase; text-align: center; }
+  .arch-arrow {
+    font-size: 1.4rem;
+    color: var(--text-muted);
+    flex: 1;
+    text-align: center;
+    min-width: 30px;
+  }
+  .arch-info { flex: 1; min-width: 200px; }
+  .arch-info h3 { font-size: 1rem; font-weight: 600; margin-bottom: .3rem; }
+  .arch-info p  { font-size: .85rem; color: var(--text-muted); }
+
+  /* ── STEPS ── */
+  .step {
+    margin-bottom: 2rem;
+    position: relative;
+  }
+  .step-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .85rem; font-weight: 600;
+    border: 2px solid;
+  }
+  .step-num.orange { border-color: var(--aws-orange); color: var(--aws-orange); background: rgba(255,153,0,.1); }
+  .step-num.blue   { border-color: #0550ae;    color: #0550ae;    background: rgba(121,192,255,.1); }
+  .step-num.green  { border-color: var(--accent3);    color: var(--accent3);    background: rgba(86,211,100,.1); }
+  .step-num.yellow { border-color: var(--accent4);    color: var(--accent4);    background: rgba(227,179,65,.1); }
+  .step-num.red    { border-color: var(--accent);     color: var(--accent);     background: rgba(247,129,102,.1); }
+
+  .step-title-block h2 { font-size: 1.1rem; font-weight: 600; }
+  .step-title-block p  { font-size: .82rem; color: var(--text-muted); margin-top: .1rem; }
+
+  .step-body {
+    padding-left: 52px;
+  }
+
+  /* ── INSTRUCTIONS ── */
+  .instructions { list-style: none; display: flex; flex-direction: column; gap: .7rem; }
+  .instructions li {
+    display: flex; gap: .75rem; align-items: flex-start;
+    font-size: .9rem; color: #1a1f2e;
+  }
+  .instructions li::before {
+    content: '→';
+    color: var(--aws-orange);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: .05rem;
+  }
+  .instructions li strong { color: var(--text); }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    background: #f0f4f8;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    margin: .9rem 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .82rem;
+    color: #1a1f2e;
+    overflow-x: auto;
+    position: relative;
+  }
+  .code-block .comment { color: #6e7781; }
+  .code-block .cmd { color: #116329; }
+  .code-block .flag { color: #0550ae; }
+  .code-block .val { color: #953800; }
+  .code-block .prompt { color: #57606a; margin-right: .4rem; }
+
+  /* ── ALERT BOXES ── */
+  .alert {
+    border-radius: 7px;
+    padding: .9rem 1.1rem;
+    font-size: .85rem;
+    display: flex;
+    gap: .7rem;
+    align-items: flex-start;
+    margin: 1rem 0;
+  }
+  .alert.warn {
+    background: #fff8e6;
+    border: 1px solid #e6a817;
+    color: #7a4e00;
+  }
+  .alert.info {
+    background: rgba(121,192,255,.1);
+    border: 1px solid rgba(121,192,255,.3);
+    color: #0550ae;
+  }
+  .alert.success {
+    background: #eafaec;
+    border: 1px solid #1a7f37;
+    color: #14532d;
+  }
+  .alert-icon { font-size: 1.1rem; flex-shrink: 0; }
+  .alert p { margin: 0; line-height: 1.5; }
+  .alert p strong { display: block; margin-bottom: .2rem; }
+
+  /* ── TABLE ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .85rem;
+    margin: .8rem 0;
+  }
+  th {
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    font-size: .72rem;
+    padding: .6rem .9rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: .6rem .9rem;
+    border-bottom: 1px solid rgba(48,54,61,.5);
+    color: #1a1f2e;
+    vertical-align: top;
+  }
+  td code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: .1rem .4rem;
+    border-radius: 3px;
+    font-size: .8rem;
+    color: #0550ae;
+  }
+  tr:last-child td { border-bottom: none; }
+
+  /* ── DIVIDER ── */
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2rem 0;
+  }
+
+  /* ── FINAL CHECK ── */
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: .5rem; }
+  .checklist li {
+    display: flex; gap: .6rem; align-items: center;
+    font-size: .9rem;
+  }
+  .checklist li::before {
+    content: '☐';
+    font-size: 1rem;
+    color: var(--accent3);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 1.5rem;
+    color: var(--text-muted);
+    font-size: .78rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--aws-orange);
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="badge">Atividade Prática AWS</div>
+    <h1>Docker na EC2 + <span>ECS</span><br>Containers na prática</h1>
+    <p>Guia passo a passo para iniciantes — do Dockerfile ao ECS com EC2</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- PARTE 3 -->
+  <div class="section-label">Parte 3 — Docker na EC2</div>
+
+  <!-- PASSO 1 -->
+  <div class="section-label">Passo 1 — Criar a EC2 e instalar o Docker</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num orange">01</div>
+      <div class="step-title-block">
+        <h2>Criar a EC2 e instalar o Docker via User Data</h2>
+        <p>Uma nova instância dedicada para rodar containers</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>O que é Docker?</strong> Uma plataforma que empacota uma aplicação e todas as suas dependências em um <em>container</em> — um ambiente isolado e portátil que roda igual em qualquer máquina.</p>
+      </div>
+
+      <ul class="instructions">
+        <li>Crie uma nova instância EC2 com as mesmas configurações anteriores, com o nome <code>docker-server</code></li>
+        <li>No Security Group, libere as seguintes regras para <code>0.0.0.0/0</code>:</li>
+      </ul>
+
+      <table>
+        <thead><tr><th>Tipo</th><th>Porta</th><th>Origem</th></tr></thead>
+        <tbody>
+          <tr><td><code>SSH</code></td><td><code>22</code></td><td><code>0.0.0.0/0</code></td></tr>
+          <tr><td><code>HTTP</code></td><td><code>80</code></td><td><code>0.0.0.0/0</code></td></tr>
+          <tr><td><code>HTTPS</code></td><td><code>443</code></td><td><code>0.0.0.0/0</code></td></tr>
+        </tbody>
+      </table>
+
+      <ul class="instructions">
+        <li>Expanda <strong>Detalhes avançados</strong> e localize o campo <strong>Dados do usuário</strong></li>
+        <li>Cole o script abaixo — será executado automaticamente na primeira inicialização:</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="comment">#!/bin/bash</span><br>
+        <span class="comment"># Atualizar pacotes</span><br>
+        apt update <span class="flag">-y</span><br>
+        apt upgrade <span class="flag">-y</span><br><br>
+        <span class="comment"># Instalar o Docker e o Docker Compose</span><br>
+        apt install <span class="flag">-y</span> docker.io docker-compose-plugin<br><br>
+        <span class="comment"># Iniciar o serviço e habilitar no boot</span><br>
+        systemctl start docker<br>
+        systemctl enable docker<br><br>
+        <span class="comment"># Adicionar o usuário ubuntu ao grupo docker</span><br>
+        usermod <span class="flag">-aG</span> docker ubuntu
+      </div>
+
+      <ul class="instructions">
+        <li>Clique em <strong>Executar instância</strong></li>
+        <li>Aguarde as <strong>3/3 verificações</strong> e conecte via <strong>Conexão de Instância do EC2</strong></li>
+        <li>Confirme que o Docker foi instalado automaticamente:</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="prompt">$</span><span class="cmd">docker</span> <span class="flag">--version</span><br>
+        <span class="comment"># Saída esperada: Docker version 24.x.x, build ...</span><br><br>
+        <span class="prompt">$</span><span class="cmd">docker compose version</span><br>
+        <span class="comment"># Saída esperada: Docker Compose version v2.x.x</span>
+      </div>
+
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>O que é User Data?</strong> Um script shell que a EC2 executa automaticamente na primeira inicialização, como root. Ideal para automatizar a configuração do servidor — sem precisar entrar na máquina para instalar nada manualmente.</p>
+      </div>
+
+      <div class="alert success">
+        <div class="alert-icon">✅</div>
+        <p>Docker e Docker Compose instalados automaticamente via User Data. A instância está pronta para rodar containers.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- PASSO 2 -->
+  <div class="section-label">Passo 2 — Criar a imagem e publicar no Docker Hub</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num blue">02</div>
+      <div class="step-title-block">
+        <h2>Build local, push para o Docker Hub e rodar com Compose</h2>
+        <p>Construir a imagem, publicar no Docker Hub e subir com Docker Compose</p>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="alert warn">
+        <div class="alert-icon">⚠️</div>
+        <p><strong>Contexto da atividade:</strong> este passo constrói uma aplicação de exemplo do zero para demonstrar o fluxo completo de build e push. Na prática, vocês já terão a aplicação pronta no GitHub — o processo será apenas clonar o repositório, buildar a imagem e fazer o push para o Docker Hub.</p>
+      </div>
+
+      <ul class="instructions">
+        <li>Conecte na <code>docker-server</code> via <strong>Conexão de Instância do EC2</strong> e crie a pasta do projeto:</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="prompt">$</span><span class="cmd">mkdir</span> meu-site && <span class="cmd">cd</span> meu-site
+      </div>
+
+      <ul class="instructions">
+        <li>Crie o arquivo HTML:</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="prompt">$</span><span class="cmd">nano</span> index.html
+      </div>
+
+      <div class="code-block">
+        <span class="comment">&lt;!-- index.html --&gt;</span><br>
+        &lt;!DOCTYPE html&gt;<br>
+        &lt;html&gt;<br>
+        &lt;head&gt;&lt;meta charset="UTF-8"&gt;&lt;title&gt;AppService&lt;/title&gt;&lt;/head&gt;<br>
+        &lt;body style="font-family:sans-serif;text-align:center;padding:4rem"&gt;<br>
+        &nbsp;&nbsp;&lt;h1&gt;Minha aplicação rodando na AWS!&lt;/h1&gt;<br>
+        &nbsp;&nbsp;&lt;p&gt;Container nginx · Docker Hub · ECS&lt;/p&gt;<br>
+        &lt;/body&gt;<br>
+        &lt;/html&gt;
+      </div>
+
+      <ul class="instructions">
+        <li>Salve (<kbd>Ctrl+O</kbd> → Enter → <kbd>Ctrl+X</kbd>) e crie o Dockerfile:</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="prompt">$</span><span class="cmd">nano</span> Dockerfile
+      </div>
+
+      <div class="code-block">
+        <span class="comment"># Dockerfile</span><br>
+        FROM nginx:alpine<br>
+        RUN rm -rf /usr/share/nginx/html/*<br>
+        COPY index.html /usr/share/nginx/html/index.html<br>
+        EXPOSE 80
+      </div>
+
+      <ul class="instructions">
+        <li>Salve e crie o <code>docker-compose.yml</code>:</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="prompt">$</span><span class="cmd">nano</span> docker-compose.yml
+      </div>
+
+      <div class="code-block">
+        <span class="comment"># docker-compose.yml</span><br>
+        services:<br>
+        &nbsp;&nbsp;web:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;build: .<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;ports:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="val">"80:80"</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;restart: always
+      </div>
+
+      <ul class="instructions">
+        <li>Suba o container localmente para testar:</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="prompt">$</span><span class="cmd">docker compose up</span> <span class="flag">-d</span> <span class="flag">--build</span><br>
+        <span class="prompt">$</span><span class="cmd">docker compose ps</span>
+      </div>
+
+      <div class="alert success">
+        <div class="alert-icon">✅</div>
+        <p>Acesse <code>http://&lt;IP-PÚBLICO-DA-EC2&gt;</code> e confirme que a página carrega antes de continuar.</p>
+      </div>
+
+      <div style="border-top: 1px solid var(--border); margin-top: 1.2rem; padding-top: 1.2rem;">
+        <p style="font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--aws-orange); margin-bottom:.8rem;">Publicar a imagem no Docker Hub</p>
+
+        <div class="alert info">
+          <div class="alert-icon">💡</div>
+          <p><strong>O que é o Docker Hub?</strong> Um repositório público de imagens Docker. Ao fazer push da sua imagem, ela fica disponível para ser baixada de qualquer lugar — inclusive pelo ECS na AWS.</p>
+        </div>
+
+        <ul class="instructions">
+          <li>Faça login no Docker Hub direto do terminal da EC2:</li>
+        </ul>
+
+        <div class="code-block">
+          <span class="prompt">$</span><span class="cmd">docker login</span><br>
+          <span class="comment"># Digite seu usuário e senha do Docker Hub quando solicitado</span>
+        </div>
+
+        <ul class="instructions">
+          <li>Crie a tag da imagem com seu usuário do Docker Hub:</li>
+        </ul>
+
+        <div class="code-block">
+          <span class="comment"># Formato: docker tag &lt;imagem-local&gt; &lt;usuario&gt;/&lt;repositorio&gt;:&lt;tag&gt;</span><br>
+          <span class="prompt">$</span><span class="cmd">docker tag</span> meu-site-web <span class="val">seu-usuario/appservice-demo:latest</span>
+        </div>
+
+        <div class="alert warn">
+          <div class="alert-icon">⚠️</div>
+          <p><strong>Como descobrir o nome da imagem local?</strong> Rode <code>docker images</code> — o nome aparece na coluna <strong>REPOSITORY</strong>. O Docker Compose normalmente cria como <code>nomepasta-servico</code>, ex: <code>meu-site-web</code>.</p>
+        </div>
+
+        <ul class="instructions">
+          <li>Envie a imagem para o Docker Hub:</li>
+        </ul>
+
+        <div class="code-block">
+          <span class="prompt">$</span><span class="cmd">docker push</span> <span class="val">seu-usuario/appservice-demo:latest</span><br>
+          <span class="comment"># Aguarde o upload de todas as camadas</span>
+        </div>
+
+        <div class="alert success">
+          <div class="alert-icon">🎉</div>
+          <p><strong>Imagem publicada!</strong> Acesse <code>https://hub.docker.com/r/seu-usuario/appservice-demo</code> para confirmar. Agora ela pode ser usada em qualquer ambiente — inclusive no ECS.</p>
+        </div>
+
+        <div class="alert info">
+          <div class="alert-icon">💡</div>
+          <p><strong>Comandos úteis do Docker Compose:</strong><br>
+          <code>docker compose up -d</code> — sobe em background<br>
+          <code>docker compose down</code> — para e remove os containers<br>
+          <code>docker compose ps</code> — lista o status<br>
+          <code>docker compose logs -f</code> — acompanha os logs em tempo real<br>
+          <code>docker images</code> — lista todas as imagens locais</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- PARTE 4 -->
+  <div class="section-label" style="margin-top:1rem;">Parte 4 — ECS com imagem do Docker Hub</div>
+
+  <div class="alert info" style="margin-bottom:1.5rem">
+    <div class="alert-icon">💡</div>
+    <p><strong>O que é o ECS?</strong> Elastic Container Service — o orquestrador de containers da AWS. Em vez de gerenciar o Docker manualmente na EC2, o ECS faz isso por você: decide onde rodar o container, reinicia se cair e escala conforme necessário. Nesta parte vamos carregar a <strong>imagem própria dos alunos</strong> direto do Docker Hub.</p>
+  </div>
+
+  <!-- PASSO 3 -->
+  <div class="section-label">Passo 3 — Criar o Cluster ECS</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num orange">03</div>
+      <div class="step-title-block">
+        <h2>Criar o Cluster ECS</h2>
+        <p>O agrupamento lógico que vai hospedar os containers</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>O que é um Cluster?</strong> Um grupo de instâncias EC2 registradas no ECS. O ECS distribui os containers (tasks) entre as instâncias do cluster automaticamente.</p>
+      </div>
+
+      <ul class="instructions">
+        <li>No Console AWS, vá em <strong>ECS → Clusters → Criar cluster</strong></li>
+        <li>Nome do cluster: <code>meu-cluster</code></li>
+        <li>Em <strong>Infraestrutura</strong>, selecione <strong>Instâncias do Amazon EC2</strong></li>
+        <li>Sistema operacional: <strong>Amazon Linux 2</strong></li>
+        <li>Tipo de instância: <strong>t3.small</strong></li>
+        <li>Capacidade desejada: mín. <strong>1</strong>, máx. <strong>1</strong></li>
+        <li>Par de chaves: <strong>vockey</strong></li>
+        <li>VPC: selecione a <strong>mesma VPC</strong> usada anteriormente</li>
+        <li>Clique em <strong>Criar</strong> — aguarde alguns minutos</li>
+      </ul>
+
+      <div class="alert warn">
+        <div class="alert-icon">⚠️</div>
+        <p><strong>O que acontece por baixo?</strong> O ECS cria automaticamente um Auto Scaling Group com uma instância EC2 já configurada com o agente ECS. Você vai ver essa instância aparecer no painel EC2.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- PASSO 4 -->
+  <div class="section-label">Passo 4 — Criar a Task Definition com imagem do Docker Hub</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num blue">04</div>
+      <div class="step-title-block">
+        <h2>Criar a Task Definition</h2>
+        <p>Apontar para a imagem do Docker Hub dos alunos</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>O que é uma Task Definition?</strong> A especificação do container — qual imagem usar, quanta CPU e memória alocar, quais portas expor. Pense nela como o <code>docker run</code> do ECS, só que declarativo.</p>
+      </div>
+
+      <ul class="instructions">
+        <li>Vá em <strong>ECS → Task Definitions → Criar nova task definition</strong></li>
+        <li>Nome: <code>minha-task</code></li>
+        <li>Tipo de lançamento: <strong>EC2</strong></li>
+        <li>Em <strong>Container</strong>, clique em <strong>Adicionar container</strong>:</li>
+      </ul>
+
+      <table>
+        <thead><tr><th>Campo</th><th>Valor</th></tr></thead>
+        <tbody>
+          <tr><td>Nome do container</td><td><code>web</code></td></tr>
+          <tr><td>Imagem</td><td><code>seu-usuario/appservice-demo:latest</code></td></tr>
+          <tr><td>Mapeamento de porta — Host</td><td><code>80</code></td></tr>
+          <tr><td>Mapeamento de porta — Container</td><td><code>80</code></td></tr>
+          <tr><td>CPU</td><td><code>256</code> (0.25 vCPU)</td></tr>
+          <tr><td>Memória</td><td><code>512</code> MB</td></tr>
+        </tbody>
+      </table>
+
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>Formato da imagem:</strong> use exatamente o mesmo nome que você deu no <code>docker push</code> — ex: <code>seu-usuario/appservice-demo:latest</code>. Se o repositório for público no Docker Hub, o ECS baixa automaticamente sem precisar configurar credenciais.</p>
+      </div>
+
+      <ul class="instructions">
+        <li>Clique em <strong>Adicionar</strong> e depois em <strong>Criar</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- PASSO 5 -->
+  <div class="section-label">Passo 5 — Criar o Service e acessar o container</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num green">05</div>
+      <div class="step-title-block">
+        <h2>Criar o Service e acessar o container</h2>
+        <p>Subir a imagem do Docker Hub no cluster e acessar pelo navegador</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>Task vs Service:</strong> uma <em>Task</em> é uma execução pontual do container. Um <em>Service</em> garante que um número definido de tasks fique sempre rodando — se uma cair, o ECS sobe outra automaticamente.</p>
+      </div>
+
+      <ul class="instructions">
+        <li>Vá em <strong>ECS → Clusters → meu-cluster → Services → Criar</strong></li>
+        <li>Tipo de lançamento: <strong>EC2</strong></li>
+        <li>Task Definition: selecione <strong>minha-task</strong> (revisão mais recente)</li>
+        <li>Nome do service: <code>meu-service</code></li>
+        <li>Número desejado de tasks: <strong>1</strong></li>
+        <li>Clique em <strong>Criar service</strong></li>
+        <li>Aguarde o status da task ficar <strong>RUNNING</strong></li>
+        <li>Vá em <strong>EC2 → Instâncias</strong> e localize a instância criada pelo cluster</li>
+        <li>Copie o <strong>IP público</strong> dessa instância e acesse no navegador: <code>http://&lt;IP-PÚBLICO&gt;</code></li>
+      </ul>
+
+      <div class="alert warn">
+        <div class="alert-icon">⚠️</div>
+        <p><strong>Porta 80 bloqueada?</strong> O ECS cria um SG próprio para o cluster. Localize-o em <strong>EC2 → Security Groups</strong> e adicione uma regra de entrada: tipo HTTP, porta 80, origem <code>0.0.0.0/0</code>.</p>
+      </div>
+
+      <div class="alert success">
+        <div class="alert-icon">🎉</div>
+        <p><strong>Container rodando via ECS!</strong> A imagem do Docker Hub está sendo servida pelo ECS — sem <code>docker run</code> manual, sem SSH na máquina.</p>
+      </div>
+
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>Diferença prática — EC2 direto vs ECS:</strong><br>
+        Com Docker na EC2 você gerencia tudo manualmente. Com ECS, o orquestrador cuida disso: reinicia containers que caem, permite escalar horizontalmente e facilita atualizações de imagem sem downtime.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- CHECKLIST -->
+  <div class="section-label">Checklist Final</div>
+  <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem 2rem; margin-bottom: 2rem;">
+    <p style="font-size:.8rem; color:var(--text-muted); margin-bottom:1rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em;">Parte 3 — Docker na EC2</p>
+    <ul class="checklist">
+      <li>EC2 <code>docker-server</code> criada com portas 22, 80 e 443 liberadas</li>
+      <li>Docker e Docker Compose instalados via User Data</li>
+      <li>Verificado com <code>docker --version</code> e <code>docker compose version</code></li>
+      <li>Arquivos <code>index.html</code>, <code>Dockerfile</code> e <code>docker-compose.yml</code> criados</li>
+      <li>Container subido com <code>docker compose up -d --build</code> e página acessível</li>
+      <li>Login no Docker Hub com <code>docker login</code></li>
+      <li>Imagem tagueada e publicada com <code>docker push</code></li>
+      <li>Imagem visível em <code>hub.docker.com/r/seu-usuario/appservice-demo</code></li>
+    </ul>
+    <p style="font-size:.8rem; color:var(--text-muted); margin: 1.2rem 0 .8rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em;">Parte 4 — ECS com Docker Hub</p>
+    <ul class="checklist">
+      <li>Cluster <code>meu-cluster</code> criado com infraestrutura EC2</li>
+      <li>Task Definition <code>minha-task</code> com imagem <code>seu-usuario/appservice-demo:latest</code></li>
+      <li>Service <code>meu-service</code> criado com 1 task desejada</li>
+      <li>Task com status <strong>RUNNING</strong> no cluster</li>
+      <li>Porta 80 liberada no SG da instância EC2 do cluster</li>
+      <li>Aplicação acessível via <code>http://&lt;IP-EC2-DO-CLUSTER&gt;</code></li>
+    </ul>
+  </div>
+
+</main>
+</main>
+
+<footer>
+  Atividade Prática AWS — Parte 2: Docker · ECS &nbsp;|&nbsp; Guia para iniciantes
+</footer>
+
+</body>
+</html>

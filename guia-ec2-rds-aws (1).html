@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWS: EC2 + RDS + Node.js — Guia Prático</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f5f7fa;
+    --surface2: #ebeef3;
+    --border: #d0d7de;
+    --accent: #cf222e;
+    --accent2: #0969da;
+    --accent3: #1a7f37;
+    --accent4: #9a6700;
+    --text: #1a1f2e;
+    --text-muted: #57606a;
+    --aws-orange: #E07B00;
+    --aws-dark: #232F3E;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--aws-dark);
+    border-bottom: 3px solid var(--aws-orange);
+    padding: 2rem 2rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, rgba(255,153,0,.12) 0%, transparent 60%);
+  }
+  .header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .badge {
+    display: inline-block;
+    background: var(--aws-orange);
+    color: #000;
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: .25rem .7rem;
+    border-radius: 2px;
+    margin-bottom: .8rem;
+  }
+  header h1 {
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.25;
+  }
+  header h1 span { color: var(--aws-orange); }
+  header p {
+    margin-top: .5rem;
+    color: #c8d0d8;
+    font-size: .95rem;
+    font-weight: 300;
+  }
+
+  /* ── LAYOUT ── */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  /* ── OVERVIEW ARCH ── */
+  .arch-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+  }
+  .arch-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .35rem;
+    min-width: 90px;
+  }
+  .arch-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+  }
+  .arch-icon.ec2 { background: rgba(255,153,0,.18); border: 1.5px solid var(--aws-orange); }
+  .arch-icon.sg  { background: rgba(249,129,74,.18);  border: 1.5px solid #f9814a; }
+  .arch-icon.rds { background: rgba(121,192,255,.18); border: 1.5px solid var(--accent2); }
+  .arch-label { font-size: .72rem; font-weight: 600; color: var(--text-muted); letter-spacing: .04em; text-transform: uppercase; text-align: center; }
+  .arch-arrow {
+    font-size: 1.4rem;
+    color: var(--text-muted);
+    flex: 1;
+    text-align: center;
+    min-width: 30px;
+  }
+  .arch-info { flex: 1; min-width: 200px; }
+  .arch-info h3 { font-size: 1rem; font-weight: 600; margin-bottom: .3rem; }
+  .arch-info p  { font-size: .85rem; color: var(--text-muted); }
+
+  /* ── STEPS ── */
+  .step {
+    margin-bottom: 2rem;
+    position: relative;
+  }
+  .step-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .85rem; font-weight: 600;
+    border: 2px solid;
+  }
+  .step-num.orange { border-color: var(--aws-orange); color: var(--aws-orange); background: rgba(255,153,0,.1); }
+  .step-num.blue   { border-color: #0550ae;    color: #0550ae;    background: rgba(121,192,255,.1); }
+  .step-num.green  { border-color: var(--accent3);    color: var(--accent3);    background: rgba(86,211,100,.1); }
+  .step-num.yellow { border-color: var(--accent4);    color: var(--accent4);    background: rgba(227,179,65,.1); }
+  .step-num.red    { border-color: var(--accent);     color: var(--accent);     background: rgba(247,129,102,.1); }
+
+  .step-title-block h2 { font-size: 1.1rem; font-weight: 600; }
+  .step-title-block p  { font-size: .82rem; color: var(--text-muted); margin-top: .1rem; }
+
+  .step-body {
+    padding-left: 52px;
+  }
+
+  /* ── INSTRUCTIONS ── */
+  .instructions { list-style: none; display: flex; flex-direction: column; gap: .7rem; }
+  .instructions li {
+    display: flex; gap: .75rem; align-items: flex-start;
+    font-size: .9rem; color: #1a1f2e;
+  }
+  .instructions li::before {
+    content: '→';
+    color: var(--aws-orange);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: .05rem;
+  }
+  .instructions li strong { color: var(--text); }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    background: #f0f4f8;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    margin: .9rem 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .82rem;
+    color: #1a1f2e;
+    overflow-x: auto;
+    position: relative;
+  }
+  .code-block .comment { color: #6e7781; }
+  .code-block .cmd { color: #116329; }
+  .code-block .flag { color: #0550ae; }
+  .code-block .val { color: #953800; }
+  .code-block .prompt { color: #57606a; margin-right: .4rem; }
+
+  /* ── ALERT BOXES ── */
+  .alert {
+    border-radius: 7px;
+    padding: .9rem 1.1rem;
+    font-size: .85rem;
+    display: flex;
+    gap: .7rem;
+    align-items: flex-start;
+    margin: 1rem 0;
+  }
+  .alert.warn {
+    background: #fff8e6;
+    border: 1px solid #e6a817;
+    color: #7a4e00;
+  }
+  .alert.info {
+    background: rgba(121,192,255,.1);
+    border: 1px solid rgba(121,192,255,.3);
+    color: #0550ae;
+  }
+  .alert.success {
+    background: #eafaec;
+    border: 1px solid #1a7f37;
+    color: #14532d;
+  }
+  .alert-icon { font-size: 1.1rem; flex-shrink: 0; }
+  .alert p { margin: 0; line-height: 1.5; }
+  .alert p strong { display: block; margin-bottom: .2rem; }
+
+  /* ── TABLE ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .85rem;
+    margin: .8rem 0;
+  }
+  th {
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    font-size: .72rem;
+    padding: .6rem .9rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: .6rem .9rem;
+    border-bottom: 1px solid rgba(48,54,61,.5);
+    color: #1a1f2e;
+    vertical-align: top;
+  }
+  td code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: .1rem .4rem;
+    border-radius: 3px;
+    font-size: .8rem;
+    color: #0550ae;
+  }
+  tr:last-child td { border-bottom: none; }
+
+  /* ── DIVIDER ── */
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2rem 0;
+  }
+
+  /* ── FINAL CHECK ── */
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: .5rem; }
+  .checklist li {
+    display: flex; gap: .6rem; align-items: center;
+    font-size: .9rem;
+  }
+  .checklist li::before {
+    content: '☐';
+    font-size: 1rem;
+    color: var(--accent3);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 1.5rem;
+    color: var(--text-muted);
+    font-size: .78rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--aws-orange);
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="badge">Atividade Prática AWS</div>
+    <h1>EC2 + RDS <span>PostgreSQL</span> + Node.js<br>Comunicação via Security Group</h1>
+    <p>Guia passo a passo para iniciantes — do zero à API acessível na internet</p>
+  </div>
+</header>
+
+<main>
+<main>
+
+  <!-- INTRO LAB -->
+  <div class="section-label">Antes de começar</div>
+  <div class="step">
+    <div class="step-body" style="padding-left:0">
+      <ul class="instructions">
+        <li>Acesse <strong>https://awsacademy.instructure.com/</strong></li>
+        <li>Faça login como <strong>student</strong></li>
+        <li>Clique em <strong>Módulos</strong></li>
+        <li>Clique em <strong>Iniciar laboratórios de aprendizagem</strong></li>
+        <li>Clique em <strong>Start Lab</strong></li>
+        <li>Quando o ícone ficar <strong>verde</strong>, clique em <strong>AWS</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ARQUITETURA -->
+  <div class="section-label">Visão Geral da Arquitetura</div>
+  <div class="arch-box">
+    <div class="arch-node">
+      <div class="arch-icon ec2">💻</div>
+      <div class="arch-label">Você<br>(Browser)</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="arch-icon sg">🛡️</div>
+      <div class="arch-label">SG<br>EC2:3000</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="arch-icon ec2">🖥️</div>
+      <div class="arch-label">EC2<br>Node.js</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="arch-icon sg">🛡️</div>
+      <div class="arch-label">SG<br>RDS:5432</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="arch-icon rds">🗄️</div>
+      <div class="arch-label">RDS<br>PostgreSQL</div>
+    </div>
+    <div class="arch-info">
+      <h3>O que vamos fazer</h3>
+      <p>Criar EC2 + RDS, liberar o SG do RDS para a EC2 (porta <strong>5432</strong>), instalar um servidor Node.js na EC2 e liberar o SG da EC2 para a internet (porta <strong>3000</strong>).</p>
+    </div>
+  </div>
+
+  <!-- PARTE 1 -->
+  <div class="section-label">Parte 1 — EC2 + RDS PostgreSQL</div>
+
+  <!-- PASSO 1 -->
+  <div class="section-label">Passo 1 de 6</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num orange">01</div>
+      <div class="step-title-block">
+        <h2>Criar a Instância EC2</h2>
+        <p>O servidor que vai se conectar ao banco de dados</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>O que é EC2?</strong> É uma máquina virtual na nuvem. Pense nela como um computador que você aluga na AWS — você acessa via terminal (SSH).</p>
+      </div>
+
+      <ul class="instructions">
+        <li>No Console AWS, vá em <strong>EC2 → Instâncias → Executar instâncias</strong></li>
+        <li>No campo <strong>Nome</strong>, digite <code>server1</code> — isso cria automaticamente a tag <code>Name = server1</code></li>
+        <li>Em <strong>Início rápido</strong>, selecione <strong>Ubuntu</strong></li>
+        <li>Em <strong>Imagem (AMI)</strong>, selecione <strong>Ubuntu Server 24.04 LTS</strong></li>
+        <li>Tipo de instância: <strong>t3.small</strong></li>
+        <li>Par de chaves: selecione <strong>vockey</strong></li>
+        <li>Em <strong>Configurações de rede</strong>, anote o nome da <strong>VPC padrão</strong> selecionada — você vai precisar escolher a mesma VPC na criação do RDS</li>
+        <li>No <strong>Security Group (Firewall)</strong>, selecione <strong>Criar Grupo de Segurança</strong> e marque as seguintes regras de entrada:</li>
+      </ul>
+
+      <table>
+        <thead><tr><th>Tipo</th><th>Porta</th><th>Origem</th><th>Para quê?</th></tr></thead>
+        <tbody>
+          <tr><td><code>SSH</code></td><td><code>22</code></td><td><code>0.0.0.0/0</code></td><td>Acesso ao terminal</td></tr>
+          <tr><td><code>HTTP</code></td><td><code>80</code></td><td><code>0.0.0.0/0</code></td><td>Tráfego web padrão</td></tr>
+          <tr><td><code>HTTPS</code></td><td><code>443</code></td><td><code>0.0.0.0/0</code></td><td>Tráfego web seguro (TLS)</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="instructions">
+        <li><strong>Configurar armazenamento:</strong> altere para <strong>20 GB</strong></li>
+        <li>Clique em <strong>Executar instância</strong></li>
+      </ul>
+
+      <div class="alert info">
+        <div class="alert-icon">🏷️</div>
+        <p><strong>O que são tags?</strong> São rótulos chave-valor anexados a recursos AWS. A tag <code>Name</code> é especial — é o nome exibido no console. Boa prática: sempre taguear seus recursos desde o início.</p>
+      </div>
+
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>Por que a VPC importa?</strong> EC2 e RDS só conseguem se comunicar se estiverem na mesma VPC. A zona de disponibilidade (AZ) não precisa ser a mesma — o que importa é a VPC. No lab, normalmente existe apenas uma VPC padrão, então basta confirmar que ambos estão nela.</p>
+      </div>
+
+      <div class="alert warn">
+        <div class="alert-icon">⚠️</div>
+        <p><strong>Ambiente de lab:</strong> o IP público da sua máquina muda a cada sessão do AWS Academy, então <code>0.0.0.0/0</code> no SSH evita ter que editar o Security Group toda vez. Em produção, sempre restrinja a porta 22 ao seu IP.</p>
+      </div>
+
+      <div style="border-top: 1px solid var(--border); margin-top: 1.2rem; padding-top: 1.2rem;">
+        <p style="font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--aws-orange); margin-bottom:.8rem;">🧪 Teste — Conexão via EC2 Instance Connect</p>
+        <ul class="instructions">
+          <li>Aguarde o status da instância ficar <strong>✔ 2/2 (ou 3/3) verificações aprovadas</strong></li>
+          <li>Selecione a instância <code>server1</code> e clique em <strong>Conectar</strong></li>
+          <li>Na aba <strong>Conexão de instância do EC2</strong>, confirme que o usuário é <code>ubuntu</code></li>
+          <li>Clique em <strong>Conectar</strong> — um terminal abre direto no navegador</li>
+        </ul>
+        <div class="alert success">
+          <div class="alert-icon">✅</div>
+          <p>Conexão bem-sucedida — o prompt muda para <code>ubuntu@ip-xxx-xxx-xxx-xxx:~$</code>. Digite <code>exit</code> para sair.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- PASSO 2 -->
+  <div class="section-label">Passo 2 de 6</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num blue">02</div>
+      <div class="step-title-block">
+        <h2>Criar o Banco RDS PostgreSQL</h2>
+        <p>O banco de dados gerenciado pela AWS</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <ul class="instructions">
+        <li>Vá em <strong>RDS → Bancos de dados → Criar banco de dados → Configuração completa</strong></li>
+        <li>Mecanismo: <strong>PostgreSQL</strong> (versão padrão sugerida)</li>
+        <li>Método de criação: <strong>Criação fácil</strong></li>
+        <li>Configuração: <strong>Sandbox</strong></li>
+        <li>Identificador do banco: <code>database-1</code></li>
+        <li>Usuário principal: <code>postgres</code></li>
+        <li>Senha principal: anote! (exemplo: <code>Ads-Cesar-2026</code>)</li>
+        <li>Em <strong>Configurar conexão do EC2</strong>: selecione <strong>Conectar a um recurso de computação do EC2</strong> → selecione sua instância</li>
+        <li>Clique em <strong>Criar banco de dados</strong> (leva ~5 min)</li>
+      </ul>
+
+      <div class="alert warn">
+        <div class="alert-icon">⚠️</div>
+        <p><strong>Importante!</strong> Clique no banco → aba <strong>Segurança e conexão</strong> → clique em <strong>Endpoints</strong>. Em <strong>Endpoint e porta</strong>, salve o caminho. Guarde o endpoint, o usuário e a senha — você vai precisar na hora da conexão.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- PASSO 3 -->
+  <div class="section-label">Passo 3 de 6</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num red">03</div>
+      <div class="step-title-block">
+        <h2>Configurar o Security Group do RDS</h2>
+        <p>Liberar a porta 5432 para a EC2</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="alert info">
+        <div class="alert-icon">🛡️</div>
+        <p><strong>O que é Security Group?</strong> É um firewall virtual da AWS. Por padrão, ele bloqueia tudo. Precisamos criar uma regra que permita a EC2 falar com o RDS.</p>
+      </div>
+
+      <ul class="instructions">
+        <li>Vá em <strong>RDS → seu banco</strong> e percorra até <strong>Regras de Grupos de Segurança</strong></li>
+        <li>Localize o Security Group associado ao RDS e clique no <strong>ID do grupo</strong></li>
+        <li>Clique em <strong>Editar regras de entrada → Adicionar regra</strong> e confira se está assim:</li>
+      </ul>
+
+      <table>
+        <thead><tr><th>Campo</th><th>Valor</th><th>Por quê?</th></tr></thead>
+        <tbody>
+          <tr><td>Tipo</td><td><code>PostgreSQL</code></td><td>Já preenche a porta 5432 automaticamente</td></tr>
+          <tr><td>Protocolo</td><td><code>TCP</code></td><td>Preenchido automaticamente</td></tr>
+          <tr><td>Porta</td><td><code>5432</code></td><td>Porta padrão do PostgreSQL</td></tr>
+          <tr><td>Origem</td><td><strong>Security Group da EC2</strong></td><td>Só a EC2 pode acessar — mais seguro que liberar por IP</td></tr>
+        </tbody>
+      </table>
+
+      <div class="alert success">
+        <div class="alert-icon">✅</div>
+        <p><strong>Dica de segurança:</strong> Em vez de colocar o IP da EC2 (que pode mudar), use o ID do Security Group da EC2 como origem. Assim apenas máquinas com aquele SG podem conectar.</p>
+      </div>
+
+      <ul class="instructions">
+        <li>Clique em <strong>Salvar regras</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- PASSO 4 -->
+  <div class="section-label">Passo 4 de 6</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num green">04</div>
+      <div class="step-title-block">
+        <h2>Instalar o cliente PostgreSQL na EC2</h2>
+        <p>A ferramenta para se comunicar com o banco</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <ul class="instructions">
+        <li>Volte para a EC2 e conecte novamente no <code>server1</code> via <strong>EC2 Instance Connect</strong></li>
+        <li>Já dentro do Ubuntu, execute os comandos abaixo:</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="comment"># Atualizar pacotes</span><br>
+        <span class="prompt">$</span><span class="cmd">sudo apt update</span> <span class="flag">-y</span><br>
+        <span class="prompt">$</span><span class="cmd">sudo apt upgrade</span> <span class="flag">-y</span><br><br>
+        <span class="comment"># Instalar o cliente psql (PostgreSQL)</span><br>
+        <span class="prompt">$</span><span class="cmd">sudo apt install</span> <span class="flag">-y</span> postgresql-client
+      </div>
+
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p>O <code>psql</code> é o cliente de linha de comando do PostgreSQL. Com ele conseguimos nos conectar ao RDS e rodar comandos SQL diretamente do terminal.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- PASSO 5 -->
+  <div class="section-label">Passo 5 de 6</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num yellow">05</div>
+      <div class="step-title-block">
+        <h2>Conectar no RDS PostgreSQL 🎯</h2>
+        <p>EC2 falando com o banco</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <ul class="instructions">
+        <li>Copie o <strong>Endpoint</strong> do RDS: <strong>RDS → Banco de dados → selecione seu banco → Endpoints</strong></li>
+        <li>Execute o comando de conexão:</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="comment"># Conectar no PostgreSQL via psql</span><br>
+        <span class="prompt">$</span><span class="cmd">psql</span> <span class="flag">-h</span> <span class="val">&lt;ENDPOINT-DO-RDS&gt;</span> <span class="flag">-U</span> <span class="val">postgres</span> <span class="flag">-d</span> <span class="val">postgres</span><br><br>
+        <span class="comment"># Exemplo real:</span><br>
+        <span class="prompt">$</span><span class="cmd">psql</span> <span class="flag">-h</span> meu-banco.abc123.us-east-1.rds.amazonaws.com <span class="flag">-U</span> postgres <span class="flag">-d</span> postgres
+      </div>
+
+      <ul class="instructions">
+        <li>Digite a <strong>senha</strong> cadastrada na criação do RDS</li>
+        <li>Se tudo deu certo, você verá o prompt: <code>postgres=&gt;</code></li>
+        <li>Teste alguns comandos SQL:</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="comment">-- Criar um banco de teste</span><br>
+        <span class="cmd">CREATE DATABASE</span> mydb;<br><br>
+        <span class="comment">-- Conectar no novo banco</span><br>
+        <span class="cmd">\c</span> mydb<br><br>
+        <span class="comment">-- Criar uma tabela simples</span><br>
+        <span class="cmd">CREATE TABLE</span> alunos (id SERIAL, nome TEXT);<br><br>
+        <span class="comment">-- Inserir um registro</span><br>
+        <span class="cmd">INSERT INTO</span> alunos (nome) <span class="cmd">VALUES</span> (<span class="val">'Maria'</span>);<br><br>
+        <span class="comment">-- Consultar</span><br>
+        <span class="cmd">SELECT</span> * <span class="cmd">FROM</span> alunos;<br><br>
+        <span class="comment">-- Sair</span><br>
+        <span class="cmd">\q</span>
+      </div>
+
+      <div class="alert success">
+        <div class="alert-icon">🎉</div>
+        <p><strong>Conexão estabelecida!</strong> A EC2 está se comunicando com o RDS PostgreSQL através do Security Group configurado na porta 5432.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- PARTE 2 -->
+  <div class="section-label">Parte 2 — Servidor Node.js na EC2</div>
+
+  <!-- PASSO 6 -->
+  <div class="section-label">Passo 6 de 6</div>
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num orange">06</div>
+      <div class="step-title-block">
+        <h2>Instalar Node.js e rodar o servidor Hello World</h2>
+        <p>Servidor HTTP acessível pela internet na porta 3000</p>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="alert info">
+        <div class="alert-icon">🛡️</div>
+        <p><strong>Lembra do Security Group?</strong> Assim como liberamos a porta 5432 no RDS para a EC2, agora precisamos liberar a porta <strong>3000</strong> no SG da EC2 para que qualquer pessoa na internet possa acessar o servidor Node.</p>
+      </div>
+
+      <ul class="instructions">
+        <li>Vá em <strong>EC2 → Security Groups</strong> e selecione o SG da sua EC2</li>
+        <li>Clique em <strong>Editar regras de entrada → Adicionar regra</strong></li>
+        <li>Nome: <code>node-http-server</code> | Descrição: <code>node-http-server</code></li>
+      </ul>
+
+      <table>
+        <thead><tr><th>Campo</th><th>Valor</th><th>Por quê?</th></tr></thead>
+        <tbody>
+          <tr><td>Tipo</td><td><code>TCP personalizado</code></td><td>Porta customizada da nossa aplicação</td></tr>
+          <tr><td>Porta</td><td><code>3000</code></td><td>Porta padrão que o Node.js vai escutar</td></tr>
+          <tr><td>Origem</td><td><code>0.0.0.0/0</code></td><td>Qualquer IP pode acessar (internet pública)</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="instructions">
+        <li>Clique em <strong>Salvar regras</strong></li>
+      </ul>
+
+      <div class="alert warn">
+        <div class="alert-icon">⚠️</div>
+        <p><strong>Atenção:</strong> <code>0.0.0.0/0</code> libera para todo o mundo — OK para demonstração e testes. Em produção, restrinja ao seu IP ou use um Load Balancer.</p>
+      </div>
+
+      <ul class="instructions">
+        <li>Conecte na EC2 via <strong>EC2 Instance Connect</strong> e execute:</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="prompt">$</span><span class="cmd">sudo apt install</span> curl <span class="flag">-y</span><br><br>
+        <span class="comment"># Instalar o Node.js via NVM (gerenciador de versões)</span><br>
+        <span class="prompt">$</span><span class="cmd">curl</span> <span class="flag">-o-</span> https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash<br><br>
+        <span class="comment"># Recarregar o terminal para o nvm ficar disponível</span><br>
+        <span class="prompt">$</span><span class="cmd">source</span> ~/.bashrc<br><br>
+        <span class="comment"># Instalar a versão LTS do Node</span><br>
+        <span class="prompt">$</span><span class="cmd">nvm install</span> <span class="flag">--lts</span><br><br>
+        <span class="comment"># Verificar se instalou corretamente</span><br>
+        <span class="prompt">$</span><span class="cmd">node</span> <span class="flag">-v</span><br>
+        <span class="prompt">$</span><span class="cmd">npm</span> <span class="flag">-v</span>
+      </div>
+
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>O que é NVM?</strong> Node Version Manager — facilita instalar e trocar versões do Node. É a forma recomendada de instalar Node em servidores Linux.</p>
+      </div>
+
+      <ul class="instructions">
+        <li>Crie a pasta do projeto e o arquivo do servidor:</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="comment"># Criar pasta do projeto</span><br>
+        <span class="prompt">$</span><span class="cmd">mkdir</span> node-server && <span class="cmd">cd</span> node-server<br><br>
+        <span class="comment"># Criar o arquivo server.js</span><br>
+        <span class="prompt">$</span><span class="cmd">nano</span> server.js
+      </div>
+
+      <ul class="instructions">
+        <li>Cole o código abaixo no editor (<kbd>Ctrl+V</kbd>), salve com <kbd>Ctrl+O</kbd> → Enter, saia com <kbd>Ctrl+X</kbd>:</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="comment">// server.js — servidor HTTP básico com Node.js puro</span><br>
+        <span class="cmd">const</span> http = <span class="cmd">require</span>(<span class="val">'http'</span>);<br>
+        <span class="cmd">const</span> PORT = <span class="val">3000</span>;<br><br>
+        <span class="cmd">const</span> server = http.createServer((req, res) =&gt; {<br>
+        &nbsp;&nbsp;res.writeHead(<span class="val">200</span>, { <span class="val">'Content-Type'</span>: <span class="val">'text/plain'</span> });<br>
+        &nbsp;&nbsp;res.end(<span class="val">'Hello World da EC2!
+'</span>);<br>
+        });<br><br>
+        server.listen(PORT, () =&gt; {<br>
+        &nbsp;&nbsp;console.log(<span class="val">`Servidor rodando na porta ${PORT}`</span>);<br>
+        });
+      </div>
+
+      <ul class="instructions">
+        <li>Inicie o servidor:</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="prompt">$</span><span class="cmd">node</span> server.js<br>
+        <span class="comment"># ou em background: node server.js &amp;</span><br>
+        <span class="comment"># Saída esperada: Servidor rodando na porta 3000</span>
+      </div>
+
+      <div class="alert success">
+        <div class="alert-icon">🎉</div>
+        <p><strong>Servidor no ar!</strong> Vá na EC2, copie o <strong>IP público</strong> da instância e acesse no navegador:<br><code>http://&lt;IP-PÚBLICO-DA-EC2&gt;:3000</code><br>Você deve ver: <em>Hello World da EC2!</em></p>
+      </div>
+
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>Opcional — Rodar em background:</strong> instale e configure o <code>pm2</code> para manter o servidor vivo mesmo após fechar o SSH.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- CHECKLIST FINAL -->
+  <div class="section-label">Checklist Final</div>
+  <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem 2rem; margin-bottom: 2rem;">
+    <p style="font-size:.8rem; color:var(--text-muted); margin-bottom:1rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em;">Parte 1 — EC2 + RDS</p>
+    <ul class="checklist">
+      <li>EC2 <code>server1</code> criada e rodando (status: running)</li>
+      <li>RDS PostgreSQL criado e disponível (status: available)</li>
+      <li>EC2 e RDS na mesma VPC</li>
+      <li>SG do RDS com regra: porta 5432, origem = SG da EC2</li>
+      <li>Cliente <code>psql</code> instalado na EC2</li>
+      <li>Conexão testada com sucesso via <code>psql -h endpoint...</code></li>
+      <li>Comandos SQL executados (criar banco, tabela, inserir, consultar)</li>
+    </ul>
+    <p style="font-size:.8rem; color:var(--text-muted); margin: 1.2rem 0 .8rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em;">Parte 2 — Node.js</p>
+    <ul class="checklist">
+      <li>SG da EC2 com regra: porta 3000, origem = 0.0.0.0/0</li>
+      <li>Node.js instalado (<code>node -v</code> retorna versão)</li>
+      <li>Arquivo <code>server.js</code> criado na pasta <code>node-server</code></li>
+      <li>Servidor iniciado com <code>node server.js</code></li>
+      <li>Acessado <code>http://&lt;IP-EC2&gt;:3000</code> no navegador com sucesso</li>
+    </ul>
+  </div>
+
+  <!-- PROBLEMAS COMUNS -->
+  <div class="section-label">Problemas Comuns</div>
+  <div style="display: flex; flex-direction: column; gap: .8rem; margin-bottom: 2rem;">
+    <div class="alert warn">
+      <div class="alert-icon">⚠️</div>
+      <p><strong>Connection timed out / sem resposta no psql</strong><br>
+      O Security Group do RDS não tem a regra na porta 5432 ou a origem está errada. Revise o Passo 3.</p>
+    </div>
+    <div class="alert warn">
+      <div class="alert-icon">⚠️</div>
+      <p><strong>FATAL: password authentication failed</strong><br>
+      Senha digitada incorreta. Tente redefinir no console: RDS → Modificar → Nova senha.</p>
+    </div>
+    <div class="alert warn">
+      <div class="alert-icon">⚠️</div>
+      <p><strong>psql: command not found</strong><br>
+      O cliente não foi instalado. Volte ao Passo 4 e rode <code>sudo apt install -y postgresql-client</code>.</p>
+    </div>
+    <div class="alert warn">
+      <div class="alert-icon">⚠️</div>
+      <p><strong>EC2 e RDS em VPCs diferentes</strong><br>
+      Não conseguem se comunicar por padrão. Ambos precisam estar na mesma VPC.</p>
+    </div>
+    <div class="alert warn">
+      <div class="alert-icon">⚠️</div>
+      <p><strong>Navegador não abre http://IP:3000 (ERR_CONNECTION_REFUSED)</strong><br>
+      Verifique se o servidor Node está rodando e se a porta 3000 está liberada no SG da EC2. Revise o Passo 6.</p>
+    </div>
+    <div class="alert warn">
+      <div class="alert-icon">⚠️</div>
+      <p><strong>nvm: command not found após instalação</strong><br>
+      Execute <code>source ~/.bashrc</code> para recarregar o terminal, ou feche e abra a sessão SSH novamente.</p>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+</main>
+
+<footer>
+  Atividade Prática AWS — Parte 1: EC2 · RDS · Node.js &nbsp;|&nbsp; Guia para iniciantes
+</footer>
+
+</body>
+</html>

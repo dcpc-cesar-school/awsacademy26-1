@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AppService — Status</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      color: #1a1f2e;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1a1f2e;
+      color: #fff;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header .logo { font-size: 1.2rem; font-weight: 700; letter-spacing: .04em; }
+    header .logo span { color: #4ade80; }
+    header .env {
+      font-size: .75rem;
+      background: #2d3748;
+      padding: .3rem .8rem;
+      border-radius: 99px;
+      color: #94a3b8;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .container { max-width: 860px; margin: 2.5rem auto; padding: 0 1.5rem; }
+
+    .status-banner {
+      background: #fff;
+      border: 1px solid #d1fae5;
+      border-left: 5px solid #22c55e;
+      border-radius: 10px;
+      padding: 1.2rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .status-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px #dcfce7;
+      flex-shrink: 0;
+    }
+    .status-banner h2 { font-size: 1rem; font-weight: 600; }
+    .status-banner p  { font-size: .85rem; color: #6b7280; margin-top: .1rem; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 1.2rem 1.4rem;
+    }
+    .card-label {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #9ca3af;
+      margin-bottom: .5rem;
+    }
+    .card-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #1a1f2e;
+    }
+    .card-sub {
+      font-size: .8rem;
+      color: #6b7280;
+      margin-top: .2rem;
+    }
+    .card-value.green { color: #22c55e; }
+    .card-value.blue  { color: #3b82f6; }
+
+    .services { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; margin-bottom: 2rem; }
+    .services-header {
+      padding: .9rem 1.4rem;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: .85rem;
+      font-weight: 600;
+      color: #374151;
+    }
+    .service-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .85rem 1.4rem;
+      border-bottom: 1px solid #f9fafb;
+      font-size: .9rem;
+    }
+    .service-row:last-child { border-bottom: none; }
+    .service-name { font-weight: 500; }
+    .service-meta { font-size: .78rem; color: #9ca3af; margin-top: .1rem; }
+    .badge {
+      font-size: .72rem;
+      font-weight: 700;
+      padding: .25rem .7rem;
+      border-radius: 99px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .badge.ok       { background: #dcfce7; color: #15803d; }
+    .badge.warn     { background: #fef9c3; color: #854d0e; }
+    .badge.degraded { background: #fee2e2; color: #b91c1c; }
+
+    footer {
+      text-align: center;
+      font-size: .78rem;
+      color: #9ca3af;
+      padding: 2rem 0;
+    }
+    footer span { color: #3b82f6; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">App<span>Service</span></div>
+  <div class="env">Production</div>
+</header>
+
+<div class="container">
+
+  <div class="status-banner">
+    <div class="status-dot"></div>
+    <div>
+      <h2>Todos os sistemas operacionais</h2>
+      <p>Última verificação: agora mesmo — nenhum incidente reportado</p>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-label">Uptime</div>
+      <div class="card-value green">99.98%</div>
+      <div class="card-sub">Últimos 30 dias</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Latência média</div>
+      <div class="card-value blue">42ms</div>
+      <div class="card-sub">Região us-east-1</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Versão</div>
+      <div class="card-value">v2.4.1</div>
+      <div class="card-sub">Deployed há 3 dias</div>
+    </div>
+  </div>
+
+  <div class="services">
+    <div class="services-header">Serviços</div>
+    <div class="service-row">
+      <div>
+        <div class="service-name">API Gateway</div>
+        <div class="service-meta">gateway.appservice.io · porta 443</div>
+      </div>
+      <span class="badge ok">Operacional</span>
+    </div>
+    <div class="service-row">
+      <div>
+        <div class="service-name">Banco de Dados</div>
+        <div class="service-meta">PostgreSQL 15 · us-east-1</div>
+      </div>
+      <span class="badge ok">Operacional</span>
+    </div>
+    <div class="service-row">
+      <div>
+        <div class="service-name">Autenticação</div>
+        <div class="service-meta">OAuth 2.0 · tokens JWT</div>
+      </div>
+      <span class="badge ok">Operacional</span>
+    </div>
+    <div class="service-row">
+      <div>
+        <div class="service-name">Fila de Mensagens</div>
+        <div class="service-meta">SQS · processamento assíncrono</div>
+      </div>
+      <span class="badge warn">Degradado</span>
+    </div>
+    <div class="service-row">
+      <div>
+        <div class="service-name">CDN / Assets</div>
+        <div class="service-meta">CloudFront · 12 edge locations</div>
+      </div>
+      <span class="badge ok">Operacional</span>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Rodando em container Docker &nbsp;·&nbsp; Servido por <span>nginx</span> &nbsp;·&nbsp; AWS EC2
+</footer>
+
+</body>
+</html>
