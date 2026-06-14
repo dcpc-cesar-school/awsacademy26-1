@@ -346,7 +346,7 @@
       
       <ul class="instructions">
         <li>No final da página, expanda <strong>Detalhes avançados</strong> e localize o campo <strong>Dados do usuário</strong></li>
-        <li>Cole o script abaixo — será executado automaticamente na primeira inicialização:</li>
+        <li>Cole o script abaixo: será executado automaticamente na primeira inicialização:</li>
       </ul>
 
       <div class="code-block">
@@ -355,7 +355,7 @@
         apt update <span class="flag">-y</span><br>
         apt upgrade <span class="flag">-y</span><br><br>
         <span class="comment"># Instalar o Docker e o Docker Compose</span><br>
-        apt install <span class="flag">-y</span> docker.io docker-compose-plugin<br><br>
+        apt install <span class="flag">-y</span> docker.io docker-compose<br><br>
         <span class="comment"># Iniciar o serviço e habilitar no boot</span><br>
         systemctl start docker<br>
         systemctl enable docker<br><br>
