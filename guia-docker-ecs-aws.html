@@ -776,7 +776,7 @@
       <ul class="instructions">
         <li>Vá em <strong>ECS → Task Definitions → Criar nova task definition</strong></li>
         <li>Nome: <code>minhatarefa</code></li>
-        <li>Tipo de lançamento: <strong>AWS Fargate</strong></li>
+        <li>Tipo de inicialização: <strong>AWS Fargate</strong></li>
         <li>Sistema operacional: <strong>Linux/X86_64</strong></li>
         <li>CPU: <strong>0.25 vCPU</strong> — Memória: <strong>0.5 GB</strong></li>
         <li><strong>Função da tarefa:</strong> selecione <code>LabRole</code></li>
@@ -828,7 +828,7 @@
 
       <ul class="instructions">
         <li>Vá em <strong>ECS → Clusters → mycluster → Services → Criar</strong></li>
-        <li>Tipo de lançamento: <strong>Fargate</strong></li>
+        <li>Tipo de inicialização: <strong>Fargate</strong></li>
         <li>Task Definition: selecione <strong>minhatarefa</strong> (revisão mais recente)</li>
         <li>Nome do service: <code>myservice</code></li>
         <li>Número desejado de tasks: <strong>1</strong></li>
