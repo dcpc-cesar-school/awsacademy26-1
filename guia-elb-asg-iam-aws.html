@@ -472,27 +472,19 @@
   <div class="step-body">
     <h3>1) Acessar o CloudWatch na região correta</h3>
     <ul>
-      <li>Acesse o 
-        <a href="https://console.aws.amazon.com/cloudwatch/" target="_blank" rel="noopener noreferrer">
-          CloudWatch Console
-        </a>.
-      </li>
-      <li>No canto superior direito, certifique-se de que a região é <strong>US East (N. Virginia)</strong> (us-east-1).<br>
-          As métricas de faturamento só ficam disponíveis nessa região.
-      </li>
-    </ul>
+      <li>Acesse o CloudWatch Console.</li>
+     </ul>
 
     <h3>2) Criar um novo alarme</h3>
     <ul>
-      <li>No menu à esquerda, clique em <strong>Alarms</strong>.</li>
-      <li>Clique em <strong>All alarms</strong>.</li>
-      <li>Clique no botão <strong>Create alarm</strong>.</li>
+      <li>No menu à esquerda, clique em <strong>Alarmes</strong>.</li>
+      <li>Clique no botão <strong>Criar alarme</strong>.</li>
     </ul>
 
-    <h3>3) Selecionar a métrica de faturamento</h3>
+    <h3>3) Selecionar a métrica</h3>
     <ul>
-      <li>Clique em <strong>Select metric</strong>.</li>
-      <li>Na seção <strong>AWS Namespaces</strong>, procure e clique em <strong>Billing</strong>.</li>
+      <li>Clique em <strong>Selecionar Métrica</strong>.</li>
+      <li>Procure e clique em <strong>Billing</strong>.</li>
       <li>Clique em <strong>Total Estimated Charge</strong>.</li>
       <li>Selecione a métrica:
         <pre><code>EstimatedCharges</code></pre>
@@ -502,30 +494,34 @@
 
     <h3>4) Configurar o limite</h3>
     <ul>
-      <li><strong>Statistic:</strong> 
+      <li><strong>Estatística:</strong> 
         <code>Maximum</code>
       </li>
-      <li><strong>Period:</strong> 
+      <li><strong>Período:</strong> 
         <code>6 hours</code>
       </li>
-      <li><strong>Threshold type:</strong> 
-        <code>Static</code>
+      <li><strong>Tipo de limite:</strong> 
+        <code>Estático</code>
       </li>
-      <li><strong>Condition:</strong> 
-        <code>Greater than</code>
+      <li><strong>Sempre que EstimatedCharges for...:</strong> 
+        <code>Maior</code>
       </li>
-      <li><strong>Threshold value:</strong> digite o valor limite, por exemplo:
-        <pre><code>10</code></pre>
-        para ser avisado quando a cobrança estimada passar de 10 USD.
+      <li><strong>que...</strong> digite o valor limite, por exemplo:
+        <pre><code>30</code></pre>
+        para ser avisado quando a cobrança estimada passar de 30 USD. Próximo!
       </li>
     </ul>
 
     <h3>5) Configurar a notificação (SNS)</h3>
     <ul>
       <li>Na seção de ações do alarme, selecione o estado <strong>In alarm</strong>.</li>
-      <li>Crie ou selecione um tópico SNS.</li>
+      <li>Selecione seu tópico SNS.</li>
       <li>Adicione seu endereço de e-mail como assinante desse tópico.</li>
       <li>Confirme a assinatura clicando no link enviado para o seu e-mail.</li>
+      <li>Clique em Próximo. Informe o nome do alarme: custoalto. Próximo</li>
+      <li>Clique em Criar alarme</li>
+      
+
     </ul>
 
     <p>Depois de criar o alarme, sempre que a métrica <strong>EstimatedCharges</strong> ultrapassar o valor configurado, o alarme mudará para o estado <strong>ALARM</strong> e o CloudWatch enviará uma notificação por e-mail via SNS.</p>
