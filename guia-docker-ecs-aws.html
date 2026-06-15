@@ -562,12 +562,17 @@
         <p style="font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); margin: 1.2rem 0 .5rem;">Etapa 3 — Login, tag e push <span style="font-weight:400; text-transform:none; letter-spacing:0;">(tudo no terminal)</span></p>
 
         <ul class="instructions">
-          <li>Faça login no Docker Hub direto do terminal da EC2:</li>
+          <li>Faça login no Docker Hub direto do terminal da EC2 — substitua <code>SEU_USUARIO</code> e <code>SEU_TOKEN</code> pelos seus dados:</li>
         </ul>
 
         <div class="code-block">
-          <span class="prompt">$</span><span class="cmd">docker login</span><br>
-          <span class="comment"># Digite seu usuário e senha (ou Access Token) quando solicitado</span>
+          <span class="prompt">$</span>echo <span class="val">"SEU_TOKEN"</span> | <span class="cmd">docker login</span> <span class="flag">-u</span> <span class="val">SEU_USUARIO</span> <span class="flag">--password-stdin</span><br>
+          <span class="comment"># Login Succeeded</span>
+        </div>
+
+        <div class="alert warn">
+          <div class="alert-icon">⚠️</div>
+          <p><strong>Por que não usar só <code>docker login</code>?</strong> Sem parâmetros, o Docker tenta abrir um navegador para autenticação — o que não funciona em um terminal de servidor. O <code>--password-stdin</code> passa o token diretamente pela linha de comando, sem abrir browser e sem deixar a senha exposta no histórico do shell.</p>
         </div>
 
         <ul class="instructions">
