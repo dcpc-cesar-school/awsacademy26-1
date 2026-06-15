@@ -496,7 +496,60 @@
       </div>
     </div>
   </div>
+<!-- PASSO 8 -->
+<div class="section-label">Passo 8 — Criar alarme de cobrança</div>
+<div class="step">
+  <div class="step-header">
+    <div class="step-num yellow">08</div>
+    <div class="step-title-block">
+      <h2>Alarme de cobrança: fatura acima de 10 USD</h2>
+      <p>Receber alerta quando os custos da conta passarem de 10 dólares no mês</p>
+    </div>
+  </div>
 
+  <div class="step-body">
+    <ul>
+      <li>No console da AWS, vá em <strong>Billing / Faturamento</strong>.</li>
+      <li>No menu lateral, clique em <strong>Billing preferences</strong>.</li>
+      <li>Marque a opção <strong>Receive Billing Alerts</strong> para habilitar as métricas de cobrança no CloudWatch.</li>
+      <li>Agora vá em <strong>CloudWatch → Alarmes → Billing → Criar alarme</strong>.</li>
+      <li>Clique em <strong>Selecionar métrica</strong>.</li>
+      <li>Em <strong>Metrics → Billing → Total Estimated Charge</strong>, selecione a métrica:
+        <pre><code>EstimatedCharges (Currency: USD)</code></pre>
+      </li>
+      <li>Clique em <strong>Selecionar métrica</strong> e configure:
+        <ul>
+          <li>Estatística: <strong>Média</strong></li>
+          <li>Período: <strong>6 horas</strong></li>
+          <li>Condição: <strong>Maior que</strong></li>
+          <li>Limite:
+            <pre><code>10</code></pre>
+            (representa 10 dólares de cobrança estimada)
+          </li>
+        </ul>
+      </li>
+      <li>Clique em <strong>Próximo</strong>.</li>
+      <li>Em <strong>Notificação</strong>:
+        <ul>
+          <li>Estado do alarme: <strong>Em alarme</strong></li>
+          <li>Tópico do SNS:
+            <pre><code>alertas-aws</code></pre>
+            ou um tópico específico para financeiro, se preferir.
+          </li>
+        </ul>
+      </li>
+      <li>Clique em <strong>Próximo</strong>.</li>
+      <li>Nome do alarme:
+        <pre><code>billing-10usd</code></pre>
+      </li>
+      <li>Clique em <strong>Próximo</strong> e depois em <strong>Criar alarme</strong>.</li>
+    </ul>
+
+    <p><strong>Importante:</strong> métricas de Billing só aparecem na região <strong>us-east-1 (N. Virginia)</strong>. No CloudWatch, certifique-se de mudar a região para us-east-1 antes de criar o alarme.</p>
+
+    <p>Com esse alarme, sempre que a cobrança estimada da conta ultrapassar 10 USD no mês, você recebe um e-mail e pode agir antes da fatura fechar.</p>
+  </div>
+</div>
   <hr>
 
 <!-- ══════════════════════════════════════════════ -->
