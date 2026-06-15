@@ -464,33 +464,11 @@
 <!-- ══════════════════════════════════════════════ -->
 <!-- PARTE 3 — IAM                                 -->
 <!-- ══════════════════════════════════════════════ -->
-<div class="section-label" style="margin-top:1rem;">Parte 3 — IAM: Observação</div>
+<div class="section-label" style="margin-top:1rem;">Parte 3 — IAM</div>
 
 <div class="alert info" style="margin-bottom:1.5rem;">
   <div class="alert-icon">💡</div>
-  <p><strong>Observação:</strong> este laboratório não permite a criação de usuários, grupos e políticas do IAM. Por isso, os passos detalhados de IAM foram removidos deste guia. Em um ambiente com permissões completas, o processo seria:</p>
-</div>
-
-<div class="step">
-  <div class="step-header">
-    <div class="step-num orange">08</div>
-    <div class="step-title-block">
-      <h2>Criar grupos e usuários restritos</h2>
-      <p>Exemplo: usuário financeiro com permissões limitadas</p>
-    </div>
-  </div>
-  <div class="step-body">
-    <ol class="instructions">
-      <li>Criar um grupo, por exemplo <code>financeiro</code>, com as permissões mínimas necessárias.</li>
-      <li>Criar o usuário, por exemplo <code>usuario-financeiro</code>, com acesso ao console e adicioná-lo ao grupo.</li>
-      <li>Testar o acesso em janela anônima para confirmar que o usuário só vê o que foi permitido.</li>
-    </ol>
-
-    <div class="alert info">
-      <div class="alert-icon">💡</div>
-      <p><strong>Exemplo de política mínima:</strong> em vez de permissões amplas, use políticas específicas e, quando possível, customizadas para seguir o princípio do menor privilégio.</p>
-    </div>
-  </div>
+  <p><strong>Observação:</strong> este laboratório não permite a criação de usuários, grupos e políticas do IAM. Em um ambiente com permissões completas, o procedimento seria: criar um grupo com permissões mínimas, criar o usuário (por exemplo, <code>usuario-financeiro</code>), adicioná-lo ao grupo e testar o acesso em uma janela anônima para confirmar que ele só consegue executar as ações permitidas.</p>
 </div>
 
   <hr>
