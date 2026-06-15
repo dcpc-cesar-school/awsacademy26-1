@@ -488,8 +488,61 @@
 
         <div class="alert info">
           <div class="alert-icon">💡</div>
-          <p><strong>O que é o Docker Hub?</strong> Um repositório público de imagens Docker. Ao fazer push da sua imagem, ela fica disponível para ser baixada de qualquer lugar — inclusive pelo ECS na AWS. Caso não tenha uma conta, acesse https://app.docker.com/signup. Em seguida clique em Hub > Repositories > Create a repository > dê um nome e clique em Create > Copie o nome do repositório (depois do comando push)</p>
+          <p><strong>O que é o Docker Hub?</strong> Um repositório público de imagens Docker. Ao fazer push da sua imagem, ela fica disponível para ser baixada de qualquer lugar — inclusive pelo ECS na AWS.</p>
         </div>
+
+        <!-- ETAPA 1: Criar conta -->
+        <p style="font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); margin: 1.2rem 0 .5rem;">Etapa 1 — Criar a conta <span style="font-weight:400; text-transform:none; letter-spacing:0;">(obrigatório via navegador — feito uma única vez)</span></p>
+
+        <div class="alert warn">
+          <div class="alert-icon">⚠️</div>
+          <p><strong>Não tem conta no Docker Hub?</strong> O cadastro não pode ser feito pela linha de comando — é necessário acessar o site. Abra o navegador e acesse <strong>https://app.docker.com/signup</strong>, crie a conta e anote seu <strong>nome de usuário</strong> — ele será usado em todos os comandos a seguir. Quem já tem conta pode pular direto para a Etapa 2.</p>
+        </div>
+
+        <!-- ETAPA 2: Criar repositório via curl -->
+        <p style="font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); margin: 1.2rem 0 .5rem;">Etapa 2 — Criar o repositório no Docker Hub <span style="font-weight:400; text-transform:none; letter-spacing:0;">(via terminal, na EC2)</span></p>
+
+        <ul class="instructions">
+          <li>Antes de rodar o comando, você precisa de dois dados da sua conta. <strong>Usuário:</strong> é o nome que aparece no canto superior direito quando você acessa <a href="https://hub.docker.com" target="_blank">hub.docker.com</a> — não é o e-mail, é o nome curto como <code>joaosilva</code>.</li>
+          <li><strong>Token de acesso:</strong> é uma senha gerada pelo Docker Hub para uso em comandos e scripts. Siga os passos abaixo para criar o seu:</li>
+        </ul>
+
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:1rem 1.2rem; margin:.9rem 0;">
+          <p style="font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); margin-bottom:.8rem;">Como gerar o Access Token</p>
+          <ul class="instructions">
+            <li>Acesse <strong>hub.docker.com</strong> e faça login</li>
+            <li>Clique no seu avatar (canto superior direito) &rarr; <strong>Account Settings</strong></li>
+            <li>No menu lateral, clique em <strong>Personal Access Tokens</strong></li>
+            <li>Clique em <strong>Generate new token</strong></li>
+            <li>Dê um nome descritivo, ex: <code>ec2-lab</code></li>
+            <li>Em <strong>Access permissions</strong>, selecione <strong>Read &amp; Write</strong></li>
+            <li>Clique em <strong>Generate</strong> e <strong>copie o token imediatamente</strong> — ele só aparece uma vez</li>
+          </ul>
+          <div class="alert warn" style="margin-top:.8rem; margin-bottom:0;">
+            <div class="alert-icon">&#9888;&#65039;</div>
+            <p>Guarde o token em um lugar seguro agora. Se fechar a janela sem copiar, precisará gerar um novo.</p>
+          </div>
+        </div>
+
+        <ul class="instructions">
+          <li>Com usuário e token em mãos, crie o repositório direto do terminal da EC2 — substitua <code>SEU_USUARIO</code> e <code>SEU_TOKEN</code> pelos seus dados:</li>
+        </ul>
+
+        <div class="code-block">
+          <span class="prompt">$</span><span class="cmd">curl</span> <span class="flag">-s</span> <span class="flag">-X</span> POST \<br>
+          &nbsp;&nbsp;-H <span class="val">"Content-Type: application/json"</span> \<br>
+          &nbsp;&nbsp;-u <span class="val">"SEU_USUARIO:SEU_TOKEN"</span> \<br>
+          &nbsp;&nbsp;-d <span class="val">'{"name":"appservice-demo","is_private":false}'</span> \<br>
+          &nbsp;&nbsp;https://hub.docker.com/v2/repositories/<span class="val">SEU_USUARIO</span>/ | python3 <span class="flag">-m</span> json.tool
+        </div>
+
+        <div class="alert info">
+          <div class="alert-icon">&#128161;</div>
+          <p><strong>O que esse comando faz?</strong> Chama a API oficial do Docker Hub para criar um repositório público chamado <code>appservice-demo</code> na sua conta. O <code>python3 -m json.tool</code> no final apenas formata a resposta para ficar legível. Na resposta JSON você verá <code>"name": "appservice-demo"</code> confirmando a criação.</p>
+        </div>
+
+        <!-- ETAPA 3: Login, tag e push -->
+        <p style="font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); margin: 1.2rem 0 .5rem;">Etapa 3 — Login, tag e push <span style="font-weight:400; text-transform:none; letter-spacing:0;">(tudo no terminal)</span></p>
 
         <ul class="instructions">
           <li>Faça login no Docker Hub direto do terminal da EC2:</li>
@@ -497,7 +550,7 @@
 
         <div class="code-block">
           <span class="prompt">$</span><span class="cmd">docker login</span><br>
-          <span class="comment"># Digite seu usuário e senha do Docker Hub quando solicitado</span>
+          <span class="comment"># Digite seu usuário e senha (ou Access Token) quando solicitado</span>
         </div>
 
         <ul class="instructions">
@@ -543,6 +596,89 @@
 
   <hr>
 
+  <!-- CONCEITO: USAR IMAGEM JÁ EXISTENTE NO HUB -->
+  <div class="section-label" style="margin-top:1rem;">Conceito — Usar uma imagem já publicada no Docker Hub</div>
+
+  <div class="alert info" style="margin-bottom:1.2rem">
+    <div class="alert-icon">💡</div>
+    <p><strong>Por que isso importa?</strong> Até agora o fluxo foi: código → build → push. Mas quando a imagem já existe no Docker Hub — seja a sua ou a de outra pessoa — não é preciso ter o código fonte nem fazer build. Basta fazer <code>docker pull</code> e rodar. É exatamente assim que o ECS vai usar sua imagem.</p>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num yellow">★</div>
+      <div class="step-title-block">
+        <h2>Baixar e rodar uma imagem direto do Docker Hub</h2>
+        <p>Sem Dockerfile, sem build — apenas pull e run</p>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <ul class="instructions">
+        <li>Baixe a imagem do Hub para a máquina local (EC2 ou qualquer outra):</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="comment"># Formato: docker pull &lt;usuario&gt;/&lt;repositorio&gt;:&lt;tag&gt;</span><br>
+        <span class="prompt">$</span><span class="cmd">docker pull</span> <span class="val">seu-usuario/appservice-demo:latest</span><br>
+        <span class="comment"># O Docker baixa cada camada da imagem automaticamente</span>
+      </div>
+
+      <ul class="instructions">
+        <li>Confirme que a imagem foi baixada:</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="prompt">$</span><span class="cmd">docker images</span><br>
+        <span class="comment"># Você verá a imagem listada com seu tamanho e data de criação</span>
+      </div>
+
+      <ul class="instructions">
+        <li>Rode o container diretamente a partir da imagem:</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="comment"># -d: background  -p: mapeia porta host:container  --name: nome do container</span><br>
+        <span class="prompt">$</span><span class="cmd">docker run</span> <span class="flag">-d</span> <span class="flag">-p</span> <span class="val">80:80</span> <span class="flag">--name</span> meu-container <span class="val">seu-usuario/appservice-demo:latest</span>
+      </div>
+
+      <ul class="instructions">
+        <li>Verifique que o container está rodando:</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="prompt">$</span><span class="cmd">docker ps</span><br>
+        <span class="comment"># STATUS deve aparecer como "Up X seconds"</span>
+      </div>
+
+      <div class="alert success">
+        <div class="alert-icon">✅</div>
+        <p>Acesse <code>http://&lt;IP-PÚBLICO-DA-EC2&gt;</code> e a aplicação estará no ar — sem nenhum arquivo local, apenas a imagem baixada do Hub.</p>
+      </div>
+
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>pull vs run:</strong> o <code>docker run</code> já faz o pull automaticamente se a imagem não existir localmente — ou seja, você pode pular o <code>docker pull</code> e usar apenas <code>docker run</code> diretamente. O <code>docker pull</code> explícito é útil quando você quer pré-baixar a imagem antes de rodar, ou garantir que tem a versão mais recente de uma tag existente.</p>
+      </div>
+
+      <div class="alert warn">
+        <div class="alert-icon">⚠️</div>
+        <p><strong>Para encerrar o container:</strong><br>
+        <code>docker stop meu-container</code> — para o container (pode ser reiniciado)<br>
+        <code>docker rm meu-container</code> — remove o container (a imagem continua local)<br>
+        <code>docker rmi seu-usuario/appservice-demo:latest</code> — remove a imagem local</p>
+      </div>
+
+      <div class="alert info">
+        <div class="alert-icon">💡</div>
+        <p><strong>Relação com o ECS:</strong> o ECS faz exatamente isso — mas de forma automática e gerenciada. Quando você configura uma Task Definition apontando para <code>seu-usuario/appservice-demo:latest</code>, o ECS faz o pull da imagem e roda o container nas instâncias do cluster. Você não precisa fazer nada manualmente.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <hr>
+
   <!-- PARTE 4 -->
   <div class="section-label" style="margin-top:1rem;">Parte 4 — ECS com imagem do Docker Hub</div>
 
@@ -557,31 +693,27 @@
     <div class="step-header">
       <div class="step-num orange">03</div>
       <div class="step-title-block">
-        <h2>Criar o Cluster ECS</h2>
+        <h2>Criar o Cluster ECS (Fargate)</h2>
         <p>O agrupamento lógico que vai hospedar os containers</p>
       </div>
     </div>
     <div class="step-body">
       <div class="alert info">
         <div class="alert-icon">💡</div>
-        <p><strong>O que é um Cluster?</strong> Um grupo de instâncias EC2 registradas no ECS. O ECS distribui os containers (tasks) entre as instâncias do cluster automaticamente.</p>
+        <p><strong>O que é um Cluster?</strong> Um espaço lógico onde o ECS organiza e executa os containers. Com <strong>Fargate</strong>, não existe nenhuma EC2 para configurar ou gerenciar — a AWS provisiona a infraestrutura automaticamente nos bastidores. Você só define o container e o ECS cuida do resto.</p>
       </div>
 
       <ul class="instructions">
         <li>No Console AWS, vá em <strong>ECS → Clusters → Criar cluster</strong></li>
-        <li>Nome do cluster: <code>meu-cluster</code></li>
-        <li>Em <strong>Infraestrutura</strong>, selecione <strong>Instâncias do Amazon EC2</strong></li>
-        <li>Sistema operacional: <strong>Amazon Linux 2</strong></li>
-        <li>Tipo de instância: <strong>t3.small</strong></li>
-        <li>Capacidade desejada: mín. <strong>1</strong>, máx. <strong>1</strong></li>
-        <li>Par de chaves: <strong>vockey</strong></li>
-        <li>VPC: selecione a <strong>mesma VPC</strong> usada anteriormente</li>
-        <li>Clique em <strong>Criar</strong> — aguarde alguns minutos</li>
+        <li>Nome do cluster: <code>mycluster</code></li>
+        <li>Em <strong>Infraestrutura</strong>, selecione <strong>Somente Fargate</strong> — desmarque EC2 se estiver selecionado</li>
+        <li>Deixe as demais opções no padrão</li>
+        <li>Clique em <strong>Criar</strong> — o cluster fica pronto em segundos</li>
       </ul>
 
-      <div class="alert warn">
-        <div class="alert-icon">⚠️</div>
-        <p><strong>O que acontece por baixo?</strong> O ECS cria automaticamente um Auto Scaling Group com uma instância EC2 já configurada com o agente ECS. Você vai ver essa instância aparecer no painel EC2.</p>
+      <div class="alert success">
+        <div class="alert-icon">✅</div>
+        <p>Cluster criado. Nenhuma EC2, nenhum par de chaves, nenhum Auto Scaling Group — o Fargate gerencia tudo isso por baixo dos panos.</p>
       </div>
     </div>
   </div>
@@ -595,7 +727,7 @@
       <div class="step-num blue">04</div>
       <div class="step-title-block">
         <h2>Criar a Task Definition</h2>
-        <p>Apontar para a imagem do Docker Hub dos alunos</p>
+        <p>Apontar para a imagem do Docker Hub e configurar o container</p>
       </div>
     </div>
     <div class="step-body">
@@ -606,9 +738,16 @@
 
       <ul class="instructions">
         <li>Vá em <strong>ECS → Task Definitions → Criar nova task definition</strong></li>
-        <li>Nome: <code>minha-task</code></li>
-        <li>Tipo de lançamento: <strong>EC2</strong></li>
-        <li>Em <strong>Container</strong>, clique em <strong>Adicionar container</strong>:</li>
+        <li>Nome: <code>minhatarefa</code></li>
+        <li>Tipo de lançamento: <strong>AWS Fargate</strong></li>
+        <li>Sistema operacional: <strong>Linux/X86_64</strong></li>
+        <li>CPU: <strong>0.25 vCPU</strong> — Memória: <strong>0.5 GB</strong></li>
+        <li><strong>Função da tarefa:</strong> selecione <code>LabRole</code></li>
+        <li><strong>Função de execução da tarefa:</strong> selecione <code>LabRole</code></li>
+      </ul>
+
+      <ul class="instructions">
+        <li>Em <strong>Container</strong>, preencha:</li>
       </ul>
 
       <table>
@@ -616,20 +755,18 @@
         <tbody>
           <tr><td>Nome do container</td><td><code>web</code></td></tr>
           <tr><td>Imagem</td><td><code>seu-usuario/appservice-demo:latest</code></td></tr>
-          <tr><td>Mapeamento de porta — Host</td><td><code>80</code></td></tr>
           <tr><td>Mapeamento de porta — Container</td><td><code>80</code></td></tr>
-          <tr><td>CPU</td><td><code>256</code> (0.25 vCPU)</td></tr>
-          <tr><td>Memória</td><td><code>512</code> MB</td></tr>
+          <tr><td>Protocolo</td><td><code>TCP</code></td></tr>
         </tbody>
       </table>
 
       <div class="alert info">
         <div class="alert-icon">💡</div>
-        <p><strong>Formato da imagem:</strong> use exatamente o mesmo nome que você deu no <code>docker push</code> — ex: <code>seu-usuario/appservice-demo:latest</code>. Se o repositório for público no Docker Hub, o ECS baixa automaticamente sem precisar configurar credenciais.</p>
+        <p><strong>Formato da imagem:</strong> use exatamente o mesmo nome que você deu no <code>docker push</code> — ex: <code>seu-usuario/appservice-demo:latest</code>. Como o repositório é público no Docker Hub, o ECS baixa automaticamente sem precisar configurar credenciais.</p>
       </div>
 
       <ul class="instructions">
-        <li>Clique em <strong>Adicionar</strong> e depois em <strong>Criar</strong></li>
+        <li>Clique em <strong>Criar</strong></li>
       </ul>
     </div>
   </div>
@@ -643,7 +780,7 @@
       <div class="step-num green">05</div>
       <div class="step-title-block">
         <h2>Criar o Service e acessar o container</h2>
-        <p>Subir a imagem do Docker Hub no cluster e acessar pelo navegador</p>
+        <p>Subir a imagem no cluster Fargate e acessar pelo navegador</p>
       </div>
     </div>
     <div class="step-body">
@@ -653,31 +790,48 @@
       </div>
 
       <ul class="instructions">
-        <li>Vá em <strong>ECS → Clusters → meu-cluster → Services → Criar</strong></li>
-        <li>Tipo de lançamento: <strong>EC2</strong></li>
-        <li>Task Definition: selecione <strong>minha-task</strong> (revisão mais recente)</li>
-        <li>Nome do service: <code>meu-service</code></li>
+        <li>Vá em <strong>ECS → Clusters → mycluster → Services → Criar</strong></li>
+        <li>Tipo de lançamento: <strong>Fargate</strong></li>
+        <li>Task Definition: selecione <strong>minhatarefa</strong> (revisão mais recente)</li>
+        <li>Nome do service: <code>myservice</code></li>
         <li>Número desejado de tasks: <strong>1</strong></li>
-        <li>Clique em <strong>Criar service</strong></li>
-        <li>Aguarde o status da task ficar <strong>RUNNING</strong></li>
-        <li>Vá em <strong>EC2 → Instâncias</strong> e localize a instância criada pelo cluster</li>
-        <li>Copie o <strong>IP público</strong> dessa instância e acesse no navegador: <code>http://&lt;IP-PÚBLICO&gt;</code></li>
       </ul>
+
+      <ul class="instructions">
+        <li>Em <strong>Rede</strong>, configure:</li>
+      </ul>
+
+      <table>
+        <thead><tr><th>Campo</th><th>Valor</th></tr></thead>
+        <tbody>
+          <tr><td>VPC</td><td>Selecione a VPC padrão (<code>default</code>)</td></tr>
+          <tr><td>Sub-redes</td><td>Selecione qualquer sub-rede pública disponível</td></tr>
+          <tr><td>IP público</td><td><strong>Ativado</strong> — obrigatório para acessar pelo navegador</td></tr>
+          <tr><td>Security Group</td><td>Crie um novo: nome <code>ecs-sg</code>, regra de entrada HTTP porta 80 origem <code>0.0.0.0/0</code></td></tr>
+        </tbody>
+      </table>
 
       <div class="alert warn">
         <div class="alert-icon">⚠️</div>
-        <p><strong>Porta 80 bloqueada?</strong> O ECS cria um SG próprio para o cluster. Localize-o em <strong>EC2 → Security Groups</strong> e adicione uma regra de entrada: tipo HTTP, porta 80, origem <code>0.0.0.0/0</code>.</p>
+        <p><strong>IP público desativado?</strong> No Fargate, sem IP público a task fica inacessível pelo navegador. Confirme que a opção <em>IP público</em> está <strong>Ativado</strong> antes de criar o service.</p>
       </div>
+
+      <ul class="instructions">
+        <li>Clique em <strong>Criar service</strong></li>
+        <li>Aguarde o status da task ficar <strong>RUNNING</strong> — pode levar 1 a 2 minutos</li>
+        <li>Clique na task em execução → em <strong>Configuração de rede</strong>, copie o <strong>IP público</strong></li>
+        <li>Acesse no navegador: <code>http://&lt;IP-PÚBLICO-DA-TASK&gt;</code></li>
+      </ul>
 
       <div class="alert success">
         <div class="alert-icon">🎉</div>
-        <p><strong>Container rodando via ECS!</strong> A imagem do Docker Hub está sendo servida pelo ECS — sem <code>docker run</code> manual, sem SSH na máquina.</p>
+        <p><strong>Container rodando via ECS Fargate!</strong> A imagem do Docker Hub está sendo servida sem nenhuma EC2 para gerenciar — sem SSH, sem par de chaves, sem agente ECS.</p>
       </div>
 
       <div class="alert info">
         <div class="alert-icon">💡</div>
-        <p><strong>Diferença prática — EC2 direto vs ECS:</strong><br>
-        Com Docker na EC2 você gerencia tudo manualmente. Com ECS, o orquestrador cuida disso: reinicia containers que caem, permite escalar horizontalmente e facilita atualizações de imagem sem downtime.</p>
+        <p><strong>Diferença prática — EC2 direto vs ECS Fargate:</strong><br>
+        Com Docker na EC2 você instala, configura e gerencia tudo manualmente. Com ECS Fargate, você só descreve o container — a AWS cuida da infraestrutura, do reinício em caso de falha e da escalabilidade.</p>
       </div>
     </div>
   </div>
@@ -700,12 +854,12 @@
     </ul>
     <p style="font-size:.8rem; color:var(--text-muted); margin: 1.2rem 0 .8rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em;">Parte 4 — ECS com Docker Hub</p>
     <ul class="checklist">
-      <li>Cluster <code>meu-cluster</code> criado com infraestrutura EC2</li>
-      <li>Task Definition <code>minha-task</code> com imagem <code>seu-usuario/appservice-demo:latest</code></li>
-      <li>Service <code>meu-service</code> criado com 1 task desejada</li>
+      <li>Cluster <code>mycluster</code> criado com infraestrutura <strong>Fargate</strong></li>
+      <li>Task Definition <code>minhatarefa</code> com tipo Fargate, LabRole e imagem <code>seu-usuario/appservice-demo:latest</code></li>
+      <li>Service <code>myservice</code> criado com 1 task, IP público ativado e SG liberando porta 80</li>
       <li>Task com status <strong>RUNNING</strong> no cluster</li>
-      <li>Porta 80 liberada no SG da instância EC2 do cluster</li>
-      <li>Aplicação acessível via <code>http://&lt;IP-EC2-DO-CLUSTER&gt;</code></li>
+      <li>IP público copiado da task em execução</li>
+      <li>Aplicação acessível via <code>http://&lt;IP-PÚBLICO-DA-TASK&gt;</code></li>
     </ul>
   </div>
 
