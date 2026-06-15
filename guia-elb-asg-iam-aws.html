@@ -459,7 +459,7 @@
     </div>
   </div>
 <!-- PASSO 8 -->
-<div class="section-label">Passo 8 — Alarme de faturamento (CloudWatch Billing)</div>
+<div class="section-label">Passo 8 — Alarme de faturamento (CloudWatch)</div>
 <div class="step">
   <div class="step-header">
     <div class="step-num yellow">08</div>
@@ -470,20 +470,7 @@
   </div>
 
   <div class="step-body">
-    <h3>Pré-requisito: habilitar CloudWatch Billing Alerts</h3>
-    <ul>
-      <li>Vá para 
-        <a href="https://console.aws.amazon.com/billing/home#/preferences" target="_blank" rel="noopener noreferrer">
-          Billing Preferences
-        </a>.
-      </li>
-      <li>Em <strong>Alert preferences</strong>, clique em <strong>Edit</strong>.</li>
-      <li>Marque a opção <strong>Receive CloudWatch billing alerts</strong> e clique em <strong>Save preferences</strong>.</li>
-    </ul>
-
-    <h3>Passo a passo</h3>
-
-    <h4>1) Acessar o CloudWatch na região correta</h4>
+    <h3>1) Acessar o CloudWatch na região correta</h3>
     <ul>
       <li>Acesse o 
         <a href="https://console.aws.amazon.com/cloudwatch/" target="_blank" rel="noopener noreferrer">
@@ -495,14 +482,14 @@
       </li>
     </ul>
 
-    <h4>2) Criar um novo alarme</h4>
+    <h3>2) Criar um novo alarme</h3>
     <ul>
       <li>No menu à esquerda, clique em <strong>Alarms</strong>.</li>
       <li>Clique em <strong>All alarms</strong>.</li>
       <li>Clique no botão <strong>Create alarm</strong>.</li>
     </ul>
 
-    <h4>3) Selecionar a métrica de faturamento</h4>
+    <h3>3) Selecionar a métrica de faturamento</h3>
     <ul>
       <li>Clique em <strong>Select metric</strong>.</li>
       <li>Na seção <strong>AWS Namespaces</strong>, procure e clique em <strong>Billing</strong>.</li>
@@ -513,7 +500,7 @@
       </li>
     </ul>
 
-    <h4>4) Configurar o limite</h4>
+    <h3>4) Configurar o limite</h3>
     <ul>
       <li><strong>Statistic:</strong> 
         <code>Maximum</code>
@@ -533,7 +520,7 @@
       </li>
     </ul>
 
-    <h4>5) Configurar a notificação (SNS)</h4>
+    <h3>5) Configurar a notificação (SNS)</h3>
     <ul>
       <li>Na seção de ações do alarme, selecione o estado <strong>In alarm</strong>.</li>
       <li>Crie ou selecione um tópico SNS.</li>
