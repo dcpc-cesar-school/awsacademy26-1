@@ -137,28 +137,28 @@
   <div class="section-label">Parte 1 — Load Balancer + Auto Scaling</div>
 
   <!-- PASSO 1 -->
-  <div class="section-label">Passo 1 — Criar um Launch Template</div>
+  <div class="section-label">Passo 1 — Criar um Modelo de execução (Launch  Template)</div>
   <div class="step">
     <div class="step-header">
       <div class="step-num orange">01</div>
       <div class="step-title-block">
-        <h2>Criar o Launch Template</h2>
+        <h2>Criar o Modelo de execução</h2>
         <p>O modelo que o Auto Scaling usará para criar novas instâncias</p>
       </div>
     </div>
     <div class="step-body">
       <div class="alert info">
         <div class="alert-icon">💡</div>
-        <p><strong>O que é um Launch Template?</strong> É um modelo que define as configurações de uma instância EC2 — AMI, tipo, chave, Security Group, User Data. O Auto Scaling usa esse modelo para criar novas instâncias automaticamente quando necessário.</p>
+        <p><strong>O que é um Modelo de execução (Launch Template)?</strong> É um modelo que define as configurações de uma instância EC2 — AMI, tipo, chave, Security Group, User Data. O Auto Scaling usa esse modelo para criar novas instâncias automaticamente quando necessário.</p>
       </div>
 
       <ul class="instructions">
-        <li>Vá em <strong>EC2 → Launch Templates → Criar launch template</strong></li>
+        <li>Vá em <strong>EC2 → Modelo de execuçãos → Criar Modelo de execução</strong></li>
         <li>Nome: <code>meu-template</code></li>
         <li>AMI: <strong>Ubuntu Server 24.04 LTS</strong></li>
         <li>Tipo de instância: <strong>t3.small</strong></li>
         <li>Par de chaves: <strong>vockey</strong></li>
-        <li>Security Group: selecione um SG com as portas <strong>22</strong>, <strong>80</strong> e <strong>443</strong> liberadas</li>
+        <li>Security Group: selecione um grupo de segurança com permissão para SSH, HTTP e HTTPS ou crie um novo grupo de segurança e adicione as 3 regras (origem qualquer lugar)</li>
         <li>Expanda <strong>Detalhes avançados → Dados do usuário</strong> e cole:</li>
       </ul>
 
@@ -178,7 +178,7 @@
       </div>
 
       <ul class="instructions">
-        <li>Clique em <strong>Criar launch template</strong></li>
+        <li>Clique em <strong>Criar Modelo de execução</strong></li>
       </ul>
     </div>
   </div>
@@ -186,34 +186,34 @@
   <hr>
 
   <!-- PASSO 2 -->
-  <div class="section-label">Passo 2 — Criar o Target Group</div>
+  <div class="section-label">Passo 2 — Criar o Grupo de destino</div>
   <div class="step">
     <div class="step-header">
       <div class="step-num blue">02</div>
       <div class="step-title-block">
-        <h2>Criar o Target Group</h2>
+        <h2>Criar o Grupo de Destino (Target Group)</h2>
         <p>O grupo de instâncias que receberá o tráfego do Load Balancer</p>
       </div>
     </div>
     <div class="step-body">
       <div class="alert info">
         <div class="alert-icon">💡</div>
-        <p><strong>O que é um Target Group?</strong> Um conjunto de destinos (instâncias EC2) que o Load Balancer pode encaminhar requisições. O ALB verifica periodicamente a saúde de cada instância e só envia tráfego para as saudáveis.</p>
+        <p><strong>O que é um Grupo de destino?</strong> Um conjunto de destinos (instâncias EC2) que o Load Balancer pode encaminhar requisições. O ALB verifica periodicamente a saúde de cada instância e só envia tráfego para as saudáveis.</p>
       </div>
 
       <ul class="instructions">
-        <li>Vá em <strong>EC2 → Target Groups → Criar target group</strong></li>
+        <li>Vá em <strong>EC2 → Balanceamento de carga → Grupos de destino → Criar Grupo de destino</strong></li>
         <li>Tipo de destino: <strong>Instâncias</strong></li>
         <li>Nome: <code>meu-target-group</code></li>
         <li>Protocolo: <strong>HTTP</strong> | Porta: <strong>80</strong></li>
-        <li>VPC: selecione a <strong>VPC padrão</strong></li>
-        <li>Health check — protocolo: <strong>HTTP</strong> | Caminho: <code>/</code></li>
-        <li>Clique em <strong>Próximo</strong> e depois em <strong>Criar target group</strong></li>
+        <li>VPC: deixe a <strong>VPC padrão</strong></li>
+        <li>Verificações de integridade — protocolo: <strong>HTTP</strong> | Caminho: <code>/</code></li>
+        <li>Clique em <strong>Próximo</strong>, <strong>Próximo</strong> e depois em <strong>Criar Grupo de destino</strong></li>
       </ul>
 
       <div class="alert warn">
         <div class="alert-icon">⚠️</div>
-        <p><strong>Sem instâncias por enquanto</strong> — o Target Group começa vazio. O Auto Scaling vai registrar as instâncias automaticamente mais à frente.</p>
+        <p><strong>Sem instâncias por enquanto</strong> — o Grupo de destino começa vazio. O Auto Scaling vai registrar as instâncias automaticamente mais à frente.</p>
       </div>
     </div>
   </div>
@@ -233,7 +233,7 @@
     <div class="step-body">
       <div class="alert info">
         <div class="alert-icon">💡</div>
-        <p><strong>O que é um ALB?</strong> Um Load Balancer de camada 7 (HTTP/HTTPS) que recebe todo o tráfego de entrada e distribui entre as instâncias do Target Group, usando algoritmo round-robin por padrão. Se uma instância cair, o ALB para de enviar tráfego para ela automaticamente.</p>
+        <p><strong>O que é um ALB?</strong> Um Load Balancer de camada 7 (HTTP/HTTPS) que recebe todo o tráfego de entrada e distribui entre as instâncias do Grupo de destino, usando algoritmo round-robin por padrão. Se uma instância cair, o ALB para de enviar tráfego para ela automaticamente.</p>
       </div>
 
       <ul class="instructions">
