@@ -637,6 +637,21 @@
     <div class="step-body">
 
       <ul class="instructions">
+        <li>Antes de subir o container, certifique-se de que nenhum container anterior está ocupando a porta 80:</li>
+      </ul>
+
+      <div class="code-block">
+        <span class="comment"># Para e remove todos os containers em execução</span><br>
+        <span class="prompt">$</span><span class="cmd">docker stop</span> $(<span class="cmd">docker ps</span> <span class="flag">-q</span>)<br>
+        <span class="prompt">$</span><span class="cmd">docker rm</span> $(<span class="cmd">docker ps</span> <span class="flag">-aq</span>)
+      </div>
+
+      <div class="alert warn">
+        <div class="alert-icon">⚠️</div>
+        <p><strong>Por que fazer isso?</strong> Se você rodou containers nas etapas anteriores (ex: via Docker Compose), eles podem estar ocupando a porta 80. Tentar subir um novo container na mesma porta causa erro <code>port is already allocated</code>. Esses comandos garantem que a porta esteja livre antes de continuar.</p>
+      </div>
+
+      <ul class="instructions">
         <li>Baixe a imagem do Hub para a máquina local (EC2 ou qualquer outra):</li>
       </ul>
 
