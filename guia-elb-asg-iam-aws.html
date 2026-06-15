@@ -447,45 +447,7 @@
         <div class="alert-icon">💡</div>
         <p><strong>Ajuste o limite conforme sua aplicação.</strong> 1000 req/min é um exemplo — em produção, baseie esse valor no tráfego esperado da sua aplicação. Você pode visualizar o tráfego histórico nos gráficos do CloudWatch antes de definir o limite.</p>
       </div>
-<h2>Alarme: Auto Scaling escalando acima do normal</h2>
 
-<p>Receber alerta quando o Auto Scaling mantiver mais instâncias do que o “normal”.</p>
-
-<ul>
-  <li>Vá em <strong>CloudWatch → Alarmes → Criar alarme</strong>.</li>
-  <li>Clique em <strong>Selecionar métrica</strong>.</li>
-  <li>Navegue até <strong>AutoScaling → Group Metrics</strong>.</li>
-  <li>Selecione a métrica <strong>GroupInServiceInstances</strong> do:
-    <pre><code>meu-asg</code></pre>
-  </li>
-  <li>Clique em <strong>Selecionar métrica</strong> e configure:
-    <ul>
-      <li>Estatística: <strong>Média</strong></li>
-      <li>Período: <strong>1 minuto</strong></li>
-      <li>Condição: <strong>Maior que</strong></li>
-      <li>Limite:
-        <pre><code>2</code></pre>
-        (representa mais de 2 instâncias em serviço)
-      </li>
-    </ul>
-  </li>
-  <li>Clique em <strong>Próximo</strong>.</li>
-  <li>Em <strong>Notificação</strong>, selecione:
-    <ul>
-      <li>Estado do alarme: <strong>Em alarme</strong></li>
-      <li>Tópico do SNS:
-        <pre><code>alertas-aws</code></pre>
-      </li>
-    </ul>
-  </li>
-  <li>Clique em <strong>Próximo</strong>.</li>
-  <li>Nome do alarme:
-    <pre><code>asg-escalando</code></pre>
-  </li>
-  <li>Clique em <strong>Próximo</strong> e depois em <strong>Criar alarme</strong>.</li>
-</ul>
-
-<p>Sempre que o Auto Scaling precisar manter mais de 2 instâncias em produção, você receberá um e-mail. Isso indica que a aplicação está sob carga e o ASG está escalando automaticamente.</p>
       <div class="test-block">
         <p class="test-label">🧪 Teste — Ver métricas no CloudWatch</p>
         <ul class="instructions">
