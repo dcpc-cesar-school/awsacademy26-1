@@ -829,34 +829,19 @@
       <ul class="instructions">
         <li>Vá em <strong>ECS → Clusters → mycluster → Services → Criar</strong></li>
         <li>Tipo de inicialização: <strong>Fargate</strong></li>
-        <li>Em <strong>Detalhes do serviço</strong>, em <strong>Família da definição de tarefa</strong>: selecione <strong>minhatarefa</strong> (revisão mais recente)</li>
+        <li>Em <strong>Detalhes do serviço</strong>, em <strong>Família da definição de tarefa</strong>: selecione <strong>minhatarefa</strong></li>
         <li>Nome do service: <code>myservice</code></li>
-        <li>Número desejado de tasks: <strong>1</strong></li>
       </ul>
 
       <ul class="instructions">
         <li>Expanda <strong>Redes</strong>, configure:</li>
+        <li>Em <strong>Grupo de segurança</strong>: crie um novo com nome <code>ecs-sg</code>, regra de entrada HTTP porta <strong>80</strong> origem <code>0.0.0.0/0</code></li>
       </ul>
 
-      <table>
-        <thead><tr><th>Campo</th><th>Valor</th></tr></thead>
-        <tbody>
-          <tr><td>VPC</td><td>Selecione a VPC padrão (<code>default</code>)</td></tr>
-          <tr><td>Sub-redes</td><td>Selecione qualquer sub-rede pública disponível</td></tr>
-          <tr><td>IP público</td><td><strong>Ativado</strong> — obrigatório para acessar pelo navegador</td></tr>
-          <tr><td>Security Group</td><td>Crie um novo: nome <code>ecs-sg</code>, regra de entrada HTTP porta 80 origem <code>0.0.0.0/0</code></td></tr>
-        </tbody>
-      </table>
-
-      <div class="alert warn">
-        <div class="alert-icon">⚠️</div>
-        <p><strong>IP público desativado?</strong> No Fargate, sem IP público a task fica inacessível pelo navegador. Confirme que a opção <em>IP público</em> está <strong>Ativado</strong> antes de criar o service.</p>
-      </div>
-
       <ul class="instructions">
-        <li>Clique em <strong>Criar service</strong></li>
-        <li>Aguarde o status da task ficar <strong>RUNNING</strong> — pode levar 1 a 2 minutos</li>
-        <li>Clique na task em execução → em <strong>Configuração de rede</strong>, copie o <strong>IP público</strong></li>
+        <li>Clique em <strong>Criar</strong></li>
+        <li>Aguarde até a faixa azul ficar verde, e o campo <strong>última implantação</strong> ficar <strong>Concluído</strong> — pode levar 1 a 2 minutos</li>
+        <li>Clique na aba <strong>Tarefas</strong> → clique no id da tarefa em execução → clique na aba <strong>Associações de rede</strong>, copie o <strong>Link externo</strong></li>
         <li>Acesse no navegador: <code>http://&lt;IP-PÚBLICO-DA-TASK&gt;</code></li>
       </ul>
 
