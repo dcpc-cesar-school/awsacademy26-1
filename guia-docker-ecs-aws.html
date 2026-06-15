@@ -525,20 +525,37 @@
         </div>
 
         <ul class="instructions">
-          <li>Com usuário e token em mãos, crie o repositório direto do terminal da EC2 — substitua <code>SEU_USUARIO</code> e <code>SEU_TOKEN</code> pelos seus dados:</li>
+          <li>Com usuário e token em mãos, execute os dois comandos abaixo no terminal da EC2 — substitua <code>SEU_USUARIO</code> e <code>SEU_TOKEN</code> pelos seus dados:</li>
         </ul>
+
+        <p style="font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin:.9rem 0 .4rem;">1. Obter o token JWT de autenticação</p>
+
+        <div class="code-block">
+          <span class="comment"># Guarda o token JWT em uma variável de ambiente</span><br>
+          <span class="prompt">$</span>TOKEN=$(<span class="cmd">curl</span> <span class="flag">-s</span> https://hub.docker.com/v2/auth/token \<br>
+          &nbsp;&nbsp;-H <span class="val">"Content-Type: application/json"</span> \<br>
+          &nbsp;&nbsp;-d <span class="val">'{"identifier":"SEU_USUARIO","secret":"SEU_TOKEN"}'</span> \<br>
+          &nbsp;&nbsp;| jq <span class="flag">-r</span> <span class="val">'.access_token'</span>)
+        </div>
+
+        <div class="alert info">
+          <div class="alert-icon">💡</div>
+          <p><strong>O que acontece aqui?</strong> A API do Docker Hub troca seu usuário e token por um <strong>JWT</strong> (JSON Web Token) — uma credencial temporária usada no próximo passo. O resultado fica salvo na variável <code>$TOKEN</code> e nunca aparece no terminal.</p>
+        </div>
+
+        <p style="font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin:.9rem 0 .4rem;">2. Criar o repositório usando o JWT</p>
 
         <div class="code-block">
           <span class="prompt">$</span><span class="cmd">curl</span> <span class="flag">-s</span> <span class="flag">-X</span> POST \<br>
           &nbsp;&nbsp;-H <span class="val">"Content-Type: application/json"</span> \<br>
-          &nbsp;&nbsp;-u <span class="val">"SEU_USUARIO:SEU_TOKEN"</span> \<br>
+          &nbsp;&nbsp;-H <span class="val">"Authorization: Bearer $TOKEN"</span> \<br>
           &nbsp;&nbsp;-d <span class="val">'{"name":"appservice-demo","is_private":false}'</span> \<br>
-          &nbsp;&nbsp;https://hub.docker.com/v2/repositories/<span class="val">SEU_USUARIO</span>/ | python3 <span class="flag">-m</span> json.tool
+          &nbsp;&nbsp;https://hub.docker.com/v2/repositories/<span class="val">SEU_USUARIO</span>/
         </div>
 
         <div class="alert info">
-          <div class="alert-icon">&#128161;</div>
-          <p><strong>O que esse comando faz?</strong> Chama a API oficial do Docker Hub para criar um repositório público chamado <code>appservice-demo</code> na sua conta. O <code>python3 -m json.tool</code> no final apenas formata a resposta para ficar legível. Na resposta JSON você verá <code>"name": "appservice-demo"</code> confirmando a criação.</p>
+          <div class="alert-icon">💡</div>
+          <p><strong>O que esse comando faz?</strong> Cria o repositório público <code>appservice-demo</code> na sua conta usando o JWT obtido no passo anterior. Na resposta JSON você verá <code>"name": "appservice-demo"</code> confirmando a criação.</p>
         </div>
 
         <!-- ETAPA 3: Login, tag e push -->
