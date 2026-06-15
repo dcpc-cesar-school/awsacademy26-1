@@ -461,170 +461,37 @@
 
   <hr>
 
-  <!-- ══════════════════════════════════════════════ -->
-  <!-- PARTE 3 — IAM                                 -->
-  <!-- ══════════════════════════════════════════════ -->
-  <div class="section-label" style="margin-top:1rem;">Parte 3 — IAM: Usuários e Permissões</div>
+<!-- ══════════════════════════════════════════════ -->
+<!-- PARTE 3 — IAM                                 -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="section-label" style="margin-top:1rem;">Parte 3 — IAM: Observação</div>
 
-  <div class="alert info" style="margin-bottom:1.5rem;">
-    <div class="alert-icon">💡</div>
-    <p><strong>O que é IAM?</strong> Identity and Access Management — o serviço de controle de acesso da AWS. Com ele você define <em>quem pode fazer o quê</em> dentro da conta: criar usuários, grupos, funções e políticas que concedem ou negam permissões específicas a cada recurso.</p>
-  </div>
+<div class="alert info" style="margin-bottom:1.5rem;">
+  <div class="alert-icon">💡</div>
+  <p><strong>Observação:</strong> este laboratório não permite a criação de usuários, grupos e políticas do IAM. Por isso, os passos detalhados de IAM foram removidos deste guia. Em um ambiente com permissões completas, o processo seria:</p>
+</div>
 
-  <!-- PASSO 8 -->
-  <div class="section-label">Passo 8 — Criar um usuário com permissão específica</div>
-  <div class="step">
-    <div class="step-header">
-      <div class="step-num orange">08</div>
-      <div class="step-title-block">
-        <h2>Criar usuário com acesso somente leitura ao EC2</h2>
-        <p>Um usuário que pode visualizar instâncias mas não criar nem deletar</p>
-      </div>
-    </div>
-    <div class="step-body">
-      <div class="alert info">
-        <div class="alert-icon">💡</div>
-        <p><strong>Princípio do menor privilégio:</strong> cada usuário deve ter apenas as permissões que precisa para fazer seu trabalho — nada a mais. Isso limita o impacto em caso de credenciais comprometidas.</p>
-      </div>
-
-      <ul class="instructions">
-        <li>Vá em <strong>IAM → Usuários do IAM → Criar usuário</strong></li>
-        <li>Nome: <code>dev-readonly</code></li>
-        <li>Marque <strong>Fornecer acesso ao console de gerenciamento</strong></li>
-        <li>Senha: defina uma senha ou deixe a AWS gerar</li>
-        <li>Marque <strong>Os usuários devem criar uma nova senha na próxima sessão</strong>. Clique em Próximo</li>
-        <li>Em <strong>Definir permissões</strong>: selecione <strong>Anexar políticas diretamente</strong></li>
-        <li>Busque e selecione <strong>AmazonEC2ReadOnlyAccess</strong>. Clique em Próximo.</li>
-        <li>Clique em <strong>Criar usuário</strong></li>
-      </ul>
-
-      <div class="alert success">
-        <div class="alert-icon">✅</div>
-        <p>O usuário <code>dev-readonly</code> pode entrar no console e ver instâncias EC2, mas não consegue criar, iniciar, parar ou deletar nada.</p>
-      </div>
-
-      <div class="test-block">
-        <p class="test-label">🧪 Teste — Validar restrições do usuário</p>
-        <ul class="instructions">
-          <li>Copie o link de login do IAM (disponível na página do usuário)</li>
-          <li>Abra uma janela anônima do navegador e faça login com <code>dev-readonly</code></li>
-          <li>Tente parar uma instância EC2 — deve aparecer a mensagem <em>"Você não tem permissão"</em></li>
-        </ul>
-      </div>
+<div class="step">
+  <div class="step-header">
+    <div class="step-num orange">08</div>
+    <div class="step-title-block">
+      <h2>Criar grupos e usuários restritos</h2>
+      <p>Exemplo: usuário financeiro com permissões limitadas</p>
     </div>
   </div>
+  <div class="step-body">
+    <ol class="instructions">
+      <li>Criar um grupo, por exemplo <code>financeiro</code>, com as permissões mínimas necessárias.</li>
+      <li>Criar o usuário, por exemplo <code>usuario-financeiro</code>, com acesso ao console e adicioná-lo ao grupo.</li>
+      <li>Testar o acesso em janela anônima para confirmar que o usuário só vê o que foi permitido.</li>
+    </ol>
 
-  <hr>
-
-  <!-- PASSO 9 -->
-  <div class="section-label">Passo 9 — Criar grupo com política e adicionar usuário</div>
-  <div class="step">
-    <div class="step-header">
-      <div class="step-num blue">09</div>
-      <div class="step-title-block">
-        <h2>Criar grupo de desenvolvedores com política gerenciada</h2>
-        <p>Gerenciar permissões por grupo facilita a administração com muitos usuários</p>
-      </div>
-    </div>
-    <div class="step-body">
-      <div class="alert info">
-        <div class="alert-icon">💡</div>
-        <p><strong>Por que usar grupos?</strong> Em vez de atribuir permissões a cada usuário individualmente, você atribui ao grupo. Ao adicionar um usuário ao grupo, ele herda todas as permissões — e ao removê-lo, perde o acesso. Muito mais fácil de manter em equipes.</p>
-      </div>
-
-      <ul class="instructions">
-        <li>Vá em <strong>IAM → Grupos de usuários → Criar grupo</strong></li>
-        <li>Nome do grupo: <code>desenvolvedores</code></li>
-        <li>Em <strong>Anexar políticas de permissões</strong>, busque e selecione:</li>
-      </ul>
-
-      <table>
-        <thead><tr><th>Política</th><th>O que permite</th></tr></thead>
-        <tbody>
-          <tr><td><code>AmazonEC2FullAccess</code></td><td>Gerenciar instâncias EC2 completamente</td></tr>
-          <tr><td><code>AmazonRDSReadOnlyAccess</code></td><td>Ver bancos RDS, sem alterar</td></tr>
-          <tr><td><code>CloudWatchReadOnlyAccess</code></td><td>Ver métricas e alarmes</td></tr>
-        </tbody>
-      </table>
-
-      <ul class="instructions">
-        <li>Clique em <strong>Criar grupo</strong></li>
-        <li>Agora adicione o usuário ao grupo: <strong>IAM → Grupos → desenvolvedores → Adicionar usuários</strong></li>
-        <li>Selecione <code>dev-readonly</code> e clique em <strong>Adicionar usuários</strong></li>
-      </ul>
-
-      <div class="alert warn">
-        <div class="alert-icon">⚠️</div>
-        <p><strong>Permissões se acumulam:</strong> o usuário <code>dev-readonly</code> agora tem as permissões da política <code>AmazonEC2ReadOnlyAccess</code> (atribuída diretamente) <em>mais</em> as do grupo <code>desenvolvedores</code>. Na prática, é melhor escolher uma abordagem só — individual <em>ou</em> por grupo.</p>
-      </div>
-
-      <div class="test-block">
-        <p class="test-label">🧪 Teste — Verificar permissões acumuladas</p>
-        <ul class="instructions">
-          <li>Faça login novamente com <code>dev-readonly</code> na janela anônima</li>
-          <li>Agora tente criar uma instância EC2 — deve funcionar (permissão herdada do grupo)</li>
-          <li>Tente criar um banco RDS — deve ser bloqueado (RDS é somente leitura)</li>
-        </ul>
-      </div>
+    <div class="alert info">
+      <div class="alert-icon">💡</div>
+      <p><strong>Exemplo de política mínima:</strong> em vez de permissões amplas, use políticas específicas e, quando possível, customizadas para seguir o princípio do menor privilégio.</p>
     </div>
   </div>
-
-  <hr>
-
-  <!-- PASSO 10 -->
-  <div class="section-label">Passo 10 — Criar uma política personalizada</div>
-  <div class="step">
-    <div class="step-header">
-      <div class="step-num green">10</div>
-      <div class="step-title-block">
-        <h2>Criar uma política JSON personalizada</h2>
-        <p>Controle granular: permitir apenas listar e descrever instâncias EC2</p>
-      </div>
-    </div>
-    <div class="step-body">
-      <div class="alert info">
-        <div class="alert-icon">💡</div>
-        <p><strong>Políticas gerenciadas vs personalizadas:</strong> as políticas da AWS (como <code>AmazonEC2ReadOnlyAccess</code>) são amplas e convenientes. Políticas personalizadas permitem definir exatamente quais ações são permitidas — ideal para seguir o princípio do menor privilégio.</p>
-      </div>
-
-      <ul class="instructions">
-        <li>Vá em <strong>IAM → Políticas → Criar política</strong></li>
-        <li>Clique em <strong>JSON</strong> e cole o código abaixo:</li>
-      </ul>
-
-      <div class="code-block">
-        {<br>
-        &nbsp;&nbsp;<span class="val">"Version"</span>: <span class="val">"2012-10-17"</span>,<br>
-        &nbsp;&nbsp;<span class="val">"Statement"</span>: [<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;{<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">"Sid"</span>: <span class="val">"ListarInstancias"</span>,<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">"Effect"</span>: <span class="val">"Allow"</span>,<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">"Action"</span>: [<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">"ec2:DescribeInstances"</span>,<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">"ec2:DescribeInstanceStatus"</span>,<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">"ec2:DescribeTags"</span><br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;],<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">"Resource"</span>: <span class="val">"*"</span><br>
-        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
-        &nbsp;&nbsp;]<br>
-        }
-      </div>
-
-      <ul class="instructions">
-        <li>Nome: <code>ec2-somente-listar</code></li>
-        <li>Descrição: <code>Permite apenas listar e descrever instâncias EC2</code></li>
-        <li>Clique em <strong>Criar política</strong></li>
-      </ul>
-
-      <div class="alert info">
-        <div class="alert-icon">💡</div>
-        <p><strong>Estrutura de uma política IAM:</strong><br>
-        <code>Effect: Allow/Deny</code> — permite ou nega<br>
-        <code>Action</code> — lista de operações permitidas (ex: <code>ec2:DescribeInstances</code>)<br>
-        <code>Resource: "*"</code> — aplica a todos os recursos; pode ser restringido a um ARN específico</p>
-      </div>
-    </div>
-  </div>
+</div>
 
   <hr>
 
