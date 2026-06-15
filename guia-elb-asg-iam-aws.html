@@ -221,7 +221,7 @@
   <hr>
 
   <!-- PASSO 3 -->
-  <div class="section-label">Passo 3 — Criar o Application Load Balancer</div>
+  <div class="section-label">Passo 3 — Criar o Application Load Balancer (ALB)</div>
   <div class="step">
     <div class="step-header">
       <div class="step-num green">03</div>
@@ -237,15 +237,15 @@
       </div>
 
       <ul class="instructions">
-        <li>Vá em <strong>EC2 → Load Balancers → Criar load balancer</strong></li>
-        <li>Selecione <strong>Application Load Balancer</strong></li>
+        <li>Vá em <strong>EC2 → Balanceamento de carga → Criar load balancer</strong></li>
+        <li>Em <strong>Application Load Balancer</strong> clique em Criar</li>
         <li>Nome: <code>meu-alb</code></li>
         <li>Esquema: <strong>Voltado para a internet</strong></li>
         <li>Tipo de endereço IP: <strong>IPv4</strong></li>
         <li>VPC: selecione a <strong>VPC padrão</strong></li>
         <li>Zonas de disponibilidade: marque <strong>todas as AZs disponíveis</strong></li>
         <li>Security Group: crie um novo ou selecione um com porta <strong>80</strong> liberada para <code>0.0.0.0/0</code></li>
-        <li>Em <strong>Listeners</strong>: protocolo <strong>HTTP</strong>, porta <strong>80</strong>, encaminhar para <code>meu-target-group</code></li>
+        <li>Em <strong>Listeners</strong>: protocolo <strong>HTTP</strong>, porta <strong>80</strong>, Grupo de destino, selecione <code>meu-target-group</code></li>
         <li>Clique em <strong>Criar load balancer</strong></li>
       </ul>
 
@@ -259,12 +259,12 @@
   <hr>
 
   <!-- PASSO 4 -->
-  <div class="section-label">Passo 4 — Criar o Auto Scaling Group</div>
+  <div class="section-label">Passo 4 — Criar o grupo Auto Scalling</div>
   <div class="step">
     <div class="step-header">
       <div class="step-num yellow">04</div>
       <div class="step-title-block">
-        <h2>Criar o Auto Scaling Group</h2>
+        <h2>Criar o Grupo Auto Scalling</h2>
         <p>Escalar instâncias automaticamente conforme a demanda</p>
       </div>
     </div>
@@ -275,12 +275,12 @@
       </div>
 
       <ul class="instructions">
-        <li>Vá em <strong>EC2 → Auto Scaling Groups → Criar Auto Scaling Group</strong></li>
+        <li>Vá em <strong>EC2 → Grupo Auto Scalling → Criar Grupo Auto Scalling</strong></li>
         <li>Nome: <code>meu-asg</code></li>
         <li>Launch template: selecione <strong>meu-template</strong></li>
-        <li>VPC: <strong>VPC padrão</strong> — selecione <strong>todas as sub-redes disponíveis</strong></li>
+        <li>VPC: <strong>VPC padrão</strong> — selecione <strong>todas as sub-redes disponíveis (pelo menos as 4 primeiras)</strong></li>
         <li>Em <strong>Balanceamento de carga</strong>: selecione <strong>Anexar a um load balancer existente</strong> → <code>meu-target-group</code></li>
-        <li>Ative a opção <strong>Verificações de integridade do Elastic Load Balancing</strong></li>
+        <li>Ative a opção <strong>Verificações de integridade do Elastic Load Balancing</strong> depois clique em próximo</li>
       </ul>
 
       <table>
@@ -293,9 +293,9 @@
       </table>
 
       <ul class="instructions">
-        <li>Em <strong>Políticas de escalabilidade</strong>: selecione <strong>Política de rastreamento de destino</strong></li>
-        <li>Métrica: <strong>Utilização média de CPU</strong> | Valor alvo: <strong>60%</strong></li>
-        <li>Clique em <strong>Criar Auto Scaling Group</strong></li>
+        <li>Em <strong>Ajuste de escala automático</strong>: selecione <strong>Política de dimensionamento com monitoramento de objetivo</strong></li>
+        <li>Métrica: <strong>Média de utilização de CPU</strong> | Valor destino: <strong>60</strong> (representa a porcentagem)</li>
+        <li>Clique em Próximo. Próximo. Próximo. Criar Grupo Auto Scalling</strong></li>
       </ul>
 
       <div class="alert success">
@@ -347,7 +347,7 @@
     </div>
     <div class="step-body">
       <ul class="instructions">
-        <li>Vá em <strong>SNS → Tópicos → Criar tópico</strong></li>
+        <li>Procure por <strong>SNS (Simple Notification Service) → Tópicos → Criar tópico</strong></li>
         <li>Tipo: <strong>Padrão</strong></li>
         <li>Nome: <code>alertas-aws</code></li>
         <li>Clique em <strong>Criar tópico</strong></li>
@@ -378,9 +378,9 @@
     </div>
     <div class="step-body">
       <ul class="instructions">
-        <li>Vá em <strong>CloudWatch → Alarmes → Criar alarme</strong></li>
+        <li>Procure por <strong>CloudWatch → Alarmes → Criar alarme</strong></li>
         <li>Clique em <strong>Selecionar métrica</strong></li>
-        <li>Navegue até <strong>EC2 → Por instância</strong> e selecione a métrica <strong>CPUUtilization</strong> de uma das instâncias do ASG</li>
+        <li>Navegue até <strong>EC2 → Per instance Metrics</strong> desca até aparecer o docker-server, depois selecione apenas a métrica <strong>CPUUtilization</strong> dele</li>
         <li>Clique em <strong>Selecionar métrica</strong></li>
       </ul>
 
@@ -390,15 +390,15 @@
           <tr><td>Estatística</td><td>Média</td></tr>
           <tr><td>Período</td><td>5 minutos</td></tr>
           <tr><td>Condição</td><td>Maior que</td></tr>
-          <tr><td>Limite</td><td><code>70</code> (%)</td></tr>
-          <tr><td>Pontos para alarme</td><td>2 de 2 (10 min consecutivos)</td></tr>
+          <tr><td>Limite</td><td><code>70</code> (representa uma porcentagem)</td></tr>
+          <tr><td>Configuração adicional > Pontos para alarme</td><td>2 de 2 (representa 10 min consecutivos). Clique em próximo</td></tr>
         </tbody>
       </table>
 
       <ul class="instructions">
-        <li>Em <strong>Notificação</strong>: selecione <strong>Em alarme</strong> → tópico <code>alertas-aws</code></li>
-        <li>Nome do alarme: <code>cpu-alta</code></li>
-        <li>Clique em <strong>Criar alarme</strong></li>
+        <li>Em <strong>Notificação</strong>: selecione <strong>Em alarme</strong> → Enviar uma notificação para o seguinte tópico do SNS > selecionar um tópico SNS existente: selecione <code>alertas-aws</code></li>
+        <li>Clique em Próximo. Nome do alarme: <code>cpu-alta</code></li>
+        <li>Clique em Próximo. Clique em <strong>Criar alarme</strong></li>
       </ul>
 
       <div class="alert info">
@@ -423,8 +423,8 @@
     <div class="step-body">
       <ul class="instructions">
         <li>Vá em <strong>CloudWatch → Alarmes → Criar alarme → Selecionar métrica</strong></li>
-        <li>Navegue até <strong>ApplicationELB → Por load balancer</strong></li>
-        <li>Selecione a métrica <strong>RequestCount</strong> do <code>meu-alb</code></li>
+        <li>Navegue até <strong>ApplicationELB → Per ALB Metrics</strong></li>
+        <li>Selecione a métrica <strong>RequestCount</strong> do <code>seu alb</code></li>
       </ul>
 
       <table>
@@ -438,9 +438,9 @@
       </table>
 
       <ul class="instructions">
-        <li>Em <strong>Notificação</strong>: selecione <strong>Em alarme</strong> → tópico <code>alertas-aws</code></li>
-        <li>Nome do alarme: <code>requisicoes-altas</code></li>
-        <li>Clique em <strong>Criar alarme</strong></li>
+        <li>Em <strong>Notificação</strong>: selecione <strong>Em alarme</strong> → selecione o tópico <code>alertas-aws</code></li>
+        <li>Clique em Próximo. Em Nome do alarme: <code>requisicoes-altas</code></li>
+        <li>Clique em Próximo. Clique em <strong>Criar alarme</strong></li>
       </ul>
 
       <div class="alert info">
@@ -638,7 +638,7 @@
       <li>Launch Template <code>meu-template</code> criado com nginx no User Data</li>
       <li>Target Group <code>meu-target-group</code> criado na porta 80</li>
       <li>ALB <code>meu-alb</code> criado e apontando para o Target Group</li>
-      <li>Auto Scaling Group <code>meu-asg</code> com 2 instâncias desejadas (mín 1, máx 4)</li>
+      <li>Grupo Auto Scalling <code>meu-asg</code> com 2 instâncias desejadas (mín 1, máx 4)</li>
       <li>Política de escalabilidade por CPU (alvo: 60%)</li>
       <li>DNS do ALB acessível e alternando entre instâncias</li>
     </ul>
